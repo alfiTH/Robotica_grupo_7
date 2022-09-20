@@ -4,6 +4,7 @@
 #include <QtGui>
 #include <QTimer>
 #include "ui_counterDlg.h"
+#include <thread>   
 
 class QTimer;
 
@@ -14,7 +15,11 @@ class ejemplo1 : public QWidget, public Ui_Counter
         int counter;
         QTimer *tUpdate; 
         QTimer *tCounter;
-        bool runTimer;
+        std::thread threadUpdate;
+
+    public:
+        void timer_thread();
+
     Q_OBJECT
     public:
         ejemplo1();
@@ -27,6 +32,7 @@ class ejemplo1 : public QWidget, public Ui_Counter
         void run_timer();
         void decrement();
         void increment();
+        void reset();
 };
 
 #endif // ejemplo1_H

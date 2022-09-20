@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>418</width>
-    <height>421</height>
+    <height>490</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,8 +18,8 @@
     <rect>
      <x>80</x>
      <y>290</y>
-     <width>258</width>
-     <height>101</height>
+     <width>261</width>
+     <height>151</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="layoutControl">
@@ -31,6 +31,13 @@
      </widget>
     </item>
     <item>
+     <widget class="QPushButton" name="Reset">
+      <property name="text">
+       <string>Reset</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QWidget" name="widgetManual" native="true">
       <widget class="QWidget" name="verticalLayoutWidget">
        <property name="geometry">
@@ -38,7 +45,7 @@
          <x>0</x>
          <y>0</y>
          <width>261</width>
-         <height>62</height>
+         <height>83</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="layoutManual">

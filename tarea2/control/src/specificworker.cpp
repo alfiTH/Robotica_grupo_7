@@ -38,8 +38,17 @@ SpecificWorker::~SpecificWorker()
 	std::cout << "Destroying SpecificWorker" << std::endl;
 }
 
+// Driver function to sort the vector elements
+// by second element of pairs
+bool sortbysec(const auto &a,
+               const auto &b)
+{
+    return (a.second < b.second);
+}
+
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
+    UNBRAL=500;
 //	THE FOLLOWING IS JUST AN EXAMPLE
 //	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
 //	try
@@ -75,20 +84,24 @@ void SpecificWorker::initialize(int period)
 
 void SpecificWorker::compute()
 {
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+    // el robot siente
+    try
+    {
+        const auto ldata = laser_proxy->getLaserData();
+        const int part = 3;
+
+        RoboCompLaser::TLaserData copy;
+        copy.assign(ldata.begin()+ldata.size()/part, ldata.end()-ldata.size()/part);
+        std::ranges::sort(copy, {}, &RoboCompLaser::TData::dist);
+        qInfo() << copy.front().dist;
+
+
+        // robot actua
+//        float adv = 300;
+//        float rot = 0.5;
+//        differentialrobot_proxy->setSpeedBase(adv, rot);
+    }
+    catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
 }
 
 int SpecificWorker::startup_check()
@@ -97,6 +110,8 @@ int SpecificWorker::startup_check()
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
+
+
 
 
 

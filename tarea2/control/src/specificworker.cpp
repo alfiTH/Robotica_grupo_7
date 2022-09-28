@@ -48,7 +48,7 @@ bool sortbysec(const auto &a,
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    UNBRAL=500;
+    UMBRAL=1000;
 //	THE FOLLOWING IS JUST AN EXAMPLE
 //	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
 //	try
@@ -59,11 +59,6 @@ bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 //	}
 //	catch(const std::exception &e) { qFatal("Error reading config params"); }
 
-
-
-
-
-
 	return true;
 }
 
@@ -71,6 +66,17 @@ void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
 	this->Period = period;
+
+    velGiroOld = 0;
+    velAdvOld = 0;
+    velGiro = 0;
+    velAdv = 0;
+    std::mt19937 rngAux(dev());
+    rng  = std::move(rngAux);
+    std::uniform_int_distribution<std::mt19937::result_type> distAux(0,M_PI*2); // distribution in range [1, 6]
+    dist6  = std::move(distAux);
+
+
 	if(this->startup_check_flag)
 	{
 		this->startup_check();
@@ -93,13 +99,32 @@ void SpecificWorker::compute()
         RoboCompLaser::TLaserData copy;
         copy.assign(ldata.begin()+ldata.size()/part, ldata.end()-ldata.size()/part);
         std::ranges::sort(copy, {}, &RoboCompLaser::TData::dist);
-        qInfo() << copy.front().dist;
 
+        if (velGiro == 0)
+            velGiro= dist6(rng) - M_PI; //velocidad de giro aleatoria
 
-        // robot actua
-//        float adv = 300;
-//        float rot = 0.5;
-//        differentialrobot_proxy->setSpeedBase(adv, rot);
+        if(copy.front().dist < UMBRAL)
+        {
+            velAdv = 0;
+        }
+        else if(copy.front().dist < UMBRAL*1.5)
+        {
+            velAdv = 500;
+        }
+        else
+        {
+            velAdv = 1000;
+            velGiro = 0;
+        }
+
+        if (velGiro != velGiroOld or velAdv != velAdvOld)
+        {
+            qInfo() << copy.front().dist;
+            this->differentialrobot_proxy->setSpeedBase(velAdv, velGiro);
+            qInfo() <<"Giro de"<<velGiro<<"Lineal de"<<velAdv;
+            velGiroOld = velGiro;
+            velAdvOld = velAdv;
+        }
     }
     catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
 }

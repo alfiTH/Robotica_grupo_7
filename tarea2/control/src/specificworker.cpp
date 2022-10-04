@@ -36,6 +36,8 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 SpecificWorker::~SpecificWorker()
 {
 	std::cout << "Destroying SpecificWorker" << std::endl;
+    this->differentialrobot_proxy->setSpeedBase(0, 0);
+
 }
 
 // Driver function to sort the vector elements
@@ -49,6 +51,7 @@ bool sortbysec(const auto &a,
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
     UMBRAL=1000;
+    UMBRAL_LATERAL = 850;
 //	THE FOLLOWING IS JUST AN EXAMPLE
 //	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
 //	try
@@ -94,20 +97,40 @@ void SpecificWorker::compute()
     try
     {
         const auto ldata = laser_proxy->getLaserData();
-        const int part = 3;
+        const int part = 4;
 
-        RoboCompLaser::TLaserData copy;
-        copy.assign(ldata.begin()+ldata.size()/part, ldata.end()-ldata.size()/part);
-        std::ranges::sort(copy, {}, &RoboCompLaser::TData::dist);
+        RoboCompLaser::TLaserData frontRight;
+        RoboCompLaser::TLaserData frontLeft;
+        RoboCompLaser::TLaserData right;
+        RoboCompLaser::TLaserData left;
+        //Comprobar que estén bien los intervalos
+        left.assign(ldata.begin(), ldata.begin()+ldata.size()/part);
+        frontLeft.assign(ldata.begin()+ldata.size()/part, ldata.end()-ldata.size()*2/part);
+        frontRight.assign(ldata.begin()+ldata.size()*2/part, ldata.end()-ldata.size()/part);
+        right.assign(ldata.end()-ldata.size()/part, ldata.end());
+
+        std::ranges::sort(frontRight, {}, &RoboCompLaser::TData::dist);
+        std::ranges::sort(frontLeft, {}, &RoboCompLaser::TData::dist);
+        std::ranges::sort(right, {}, &RoboCompLaser::TData::dist);
+        std::ranges::sort(left, {}, &RoboCompLaser::TData::dist);
+
 
         if (velGiro == 0)
-            velGiro= dist6(rng) - M_PI; //velocidad de giro aleatoria
+            velGiro = ((std::min(std::min(left.front().dist, frontLeft.front().dist), std::min(frontRight.front().dist, right.front().dist)) - UMBRAL) / (UMBRAL - UMBRAL_LATERAL) - M_PI)*3; //settea la velocidad de giro
+            //Normalización: (dato[] - min) / (max - min); además lo multiplica por un factor de X para que no vaya tan lento
 
-        if(copy.front().dist < UMBRAL)
+
+            //Falta --> Escalar
+            //Modificar velocidades para que vayan en funcion de la distancia
+            //Idea: Realizar el giro mientras das marcha atrás?
+
+            //if(frontLeft.front().dist > frontRight.front().dist || left.front().dist > right.front().dist) velGiro = +; giro a la derecha
+            //else giro a la izquierda
+        if(frontLeft.front().dist < UMBRAL || frontRight.front().dist < UMBRAL || right.front().dist < UMBRAL_LATERAL || left.front().dist < UMBRAL_LATERAL)
         {
             velAdv = 0;
         }
-        else if(copy.front().dist < UMBRAL*1.5)
+        else if(frontLeft.front().dist < UMBRAL*1.5 || frontRight.front().dist < UMBRAL*1.5 || right.front().dist < UMBRAL_LATERAL*1.5 || left.front().dist < UMBRAL_LATERAL*1.5)
         {
             velAdv = 500;
         }
@@ -119,9 +142,12 @@ void SpecificWorker::compute()
 
         if (velGiro != velGiroOld or velAdv != velAdvOld)
         {
-            qInfo() << copy.front().dist;
+            qInfo() << "Distancia central izquierda: " << frontLeft.front().dist;
+            qInfo() << "Distancia central derecha: " << frontRight.front().dist;
+            qInfo() << "Distancia lateral derecha: " << right.front().dist;
+            qInfo() << "Distancia lateral derecha: " << left.front().dist;
             this->differentialrobot_proxy->setSpeedBase(velAdv, velGiro);
-            qInfo() <<"Giro de"<<velGiro<<"Lineal de"<<velAdv;
+            qInfo() <<"Giro de "<<velGiro<<" Lineal de "<<velAdv;
             velGiroOld = velGiro;
             velAdvOld = velAdv;
         }

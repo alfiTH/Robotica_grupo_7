@@ -57,7 +57,9 @@ private:
     float velAdv;
     float velGiroOld;
     float velAdvOld;
+    float factorVel;
     int UMBRAL;
+    int UMBRAL_LATERAL;
 
 };
 

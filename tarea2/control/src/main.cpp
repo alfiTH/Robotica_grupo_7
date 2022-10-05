@@ -130,45 +130,45 @@ int ::control::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
-	RoboCompDifferentialRobot::DifferentialRobotPrxPtr differentialrobot_proxy;
-	RoboCompLaser::LaserPrxPtr laser_proxy;
+	RoboCompDifferentialRobotMulti::DifferentialRobotMultiPrxPtr differentialrobotmulti_proxy;
+	RoboCompLaserMulti::LaserMultiPrxPtr lasermulti_proxy;
 
 	string proxy, tmp;
 	initialize();
 
 	try
 	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "DifferentialRobotProxy", proxy, ""))
+		if (not GenericMonitor::configGetString(communicator(), prefix, "DifferentialRobotMultiProxy", proxy, ""))
 		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DifferentialRobotProxy\n";
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy DifferentialRobotMultiProxy\n";
 		}
-		differentialrobot_proxy = Ice::uncheckedCast<RoboCompDifferentialRobot::DifferentialRobotPrx>( communicator()->stringToProxy( proxy ) );
+		differentialrobotmulti_proxy = Ice::uncheckedCast<RoboCompDifferentialRobotMulti::DifferentialRobotMultiPrx>( communicator()->stringToProxy( proxy ) );
 	}
 	catch(const Ice::Exception& ex)
 	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DifferentialRobot: " << ex;
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy DifferentialRobotMulti: " << ex;
 		return EXIT_FAILURE;
 	}
-	rInfo("DifferentialRobotProxy initialized Ok!");
+	rInfo("DifferentialRobotMultiProxy initialized Ok!");
 
 
 	try
 	{
-		if (not GenericMonitor::configGetString(communicator(), prefix, "LaserProxy", proxy, ""))
+		if (not GenericMonitor::configGetString(communicator(), prefix, "LaserMultiProxy", proxy, ""))
 		{
-			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserProxy\n";
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy LaserMultiProxy\n";
 		}
-		laser_proxy = Ice::uncheckedCast<RoboCompLaser::LaserPrx>( communicator()->stringToProxy( proxy ) );
+		lasermulti_proxy = Ice::uncheckedCast<RoboCompLaserMulti::LaserMultiPrx>( communicator()->stringToProxy( proxy ) );
 	}
 	catch(const Ice::Exception& ex)
 	{
-		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy Laser: " << ex;
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy LaserMulti: " << ex;
 		return EXIT_FAILURE;
 	}
-	rInfo("LaserProxy initialized Ok!");
+	rInfo("LaserMultiProxy initialized Ok!");
 
 
-	tprx = std::make_tuple(differentialrobot_proxy,laser_proxy);
+	tprx = std::make_tuple(differentialrobotmulti_proxy,lasermulti_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

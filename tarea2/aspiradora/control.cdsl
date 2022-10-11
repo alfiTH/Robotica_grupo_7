@@ -1,0 +1,17 @@
+
+
+
+
+import "DifferentialRobotMulti.idsl";
+import "LaserMulti.idsl";
+
+Component control
+{
+    Communications
+    {
+	requires DifferentialRobotMulti, LaserMulti;
+	};
+    language Cpp11;
+    gui Qt(QWidget);
+};
+

@@ -50,7 +50,7 @@ bool sortbysec(const auto &a,
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    UMBRAL=1000;
+    UMBRAL=750;
 
 //	THE FOLLOWING IS JUST AN EXAMPLE
 //	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
@@ -69,11 +69,12 @@ void SpecificWorker::initialize(int period)
 {
 	std::cout << "Initialize worker" << std::endl;
 	this->Period = period;
-
     velGiroOld = 0;
     velAdvOld = 0;
     velGiro = 0;
     velAdv = 0;
+    initSpiral = false;
+    mode = 1;
     std::mt19937 rngAux(dev());
     rng  = std::move(rngAux);
     std::uniform_int_distribution<std::mt19937::result_type> distAux(0,M_PI*2); // distribution in range [1, 6]
@@ -91,7 +92,7 @@ void SpecificWorker::initialize(int period)
 
 }
 
-void SpecificWorker::go_straight()
+int SpecificWorker::go_straight()
 {
     std::cout << "Go straight" << std::endl;
     const auto ldata = lasermulti_proxy->getLaserData(2);
@@ -104,7 +105,6 @@ void SpecificWorker::go_straight()
 
     velLaser.assign(ldata.begin()+ldata.size()/3, ldata.end()-ldata.size()/3);
     std::ranges::sort(velLaser, {}, &RoboCompLaserMulti::TData::dist);
-    qInfo() << "Velocidad de giro" << velLaser.front().dist;
     //VELOCIDAD POR FUNCION SIGMOIDE
     velAdv = ((-2/(1+ exp((velLaser.front().dist-UMBRAL)/435)))+1) * 1250;
 
@@ -131,30 +131,97 @@ void SpecificWorker::go_straight()
         laser.assign(right.begin(), right.end());
         laser.insert(laser.end(), left.begin(), left.end());
         velGiro= 0;
+        qInfo() << "max/min: " << maxAng.angle << " " << minAng.angle;
         for (auto &n:laser)
         {
             velGiro += n.angle * abs(n.angle)  * -20/n.dist;
         }
     }
-
-
-
-    qInfo() << "Velocidad de giro" << velGiro;
-
-
-
+    return 1;
 }
-void SpecificWorker::follow_wall()
+
+
+int SpecificWorker::follow_wall()
 {
 
-}
-void SpecificWorker::spiral()
-{
+    std::cout << "follow wall" << std::endl;
 
-}
-void SpecificWorker::balance()
-{
+    //dividiremos el LiDar en 6 sectores usando los laterales para el equilibrio del la pared
+    RoboCompLaserMulti::TLaserData sideUp;
+    RoboCompLaserMulti::TLaserData sideDown;    
+    RoboCompLaserMulti::TLaserData frontRight;
+    RoboCompLaserMulti::TLaserData frontLeft;
+    RoboCompLaserMulti::TData right;
+    RoboCompLaserMulti::TLaserData velLaser;
+    const auto ldata = lasermulti_proxy->getLaserData(2);
+    const int part = ldata.size()/6;
+    //direction = 0 --> izquierda
+    //direction = 1 --> derecha
 
+    velLaser.assign(ldata.begin() + 3 * part -part/ 2, ldata.begin() + 3 * part + part/ 2);
+    std::ranges::sort(velLaser, {}, &RoboCompLaserMulti::TData::dist);
+
+    //VELOCIDAD POR FUNCION SIGMOIDE
+    double sinAdv = (-2/(1+ exp((velLaser.front().dist-UMBRAL)/435)))+1;
+    velAdv = sinAdv * 800;
+    
+    frontRight.assign(ldata.begin() + part * 2, ldata.begin()+ part * 3);
+    frontLeft.assign(ldata.begin() + part * 3, ldata.begin() + part * 4);
+
+
+     //   sideUp.assign(ldata.begin() , ldata.begin()+ part );
+     //   sideDown.assign(ldata.begin() + part, ldata.begin() + part * 2);
+        right = ldata.at(106);
+    /*
+    difWall = 0;
+    for ( int i = 0; i < sideUp.size();i++)
+    {
+        difWall += sideUp[i].dist - sideDown[i].dist;
+    }*/
+    if( velAdv< 5 and velAdv > -5)
+    {
+        try{
+            this->differentialrobotmulti_proxy->setSpeedBase(2, velAdv, -1.25);
+            sleep(3);
+        }
+        catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
+        
+    }
+    else{
+        velGiro =((right.dist - UMBRAL)/1000) * 1.25 ;
+        if (velGiro > 3.5)
+            return 1;
+        if (right.dist < UMBRAL + 100)
+        {
+            qInfo() << "REDUCCION";
+            velGiro = velGiro * (1-sinAdv);
+        }
+        qInfo() << "dist" << right.dist ;
+        if(velGiro < -1.25)
+            velGiro = -1.25;
+        else if(velGiro > 1.25)
+            velGiro = 1.25;
+        return 2;
+    }
+
+    //velGiro = ((-2/(1+ exp((right.dist - UMBRAL)/500)))+1) * 1.25;
+    //563 (izquierda) y 106 (derecha)
+}
+int SpecificWorker::spiral()
+{
+    std::cout << "spiral" << std::endl;
+    if (initSpiral ==false)
+    {
+        initSpiral = true;
+        velAdv = 0;
+        velGiro = 1.25;
+    }
+
+    if (velAdv < 1250)
+        velAdv +=5;
+    if (velGiro > 0)
+        velGiro -=0.0005;
+    return 3;
 }
 
 
@@ -163,7 +230,25 @@ void SpecificWorker::compute()
     // el robot siente
     try
     {
-        go_straight();
+        switch (mode)
+        {
+        //Go_straight
+        case 1:
+            mode = go_straight();
+            break;
+        //follow_wall
+        case 2:
+            mode = follow_wall();
+            break;
+        //Spiral
+        case 3:
+            mode = spiral();
+            break;
+        default:
+            break;
+        }
+
+
 
         if (velGiro != velGiroOld or velAdv != velAdvOld)
         {

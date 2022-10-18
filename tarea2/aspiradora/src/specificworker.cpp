@@ -50,9 +50,8 @@ bool sortbysec(const auto &a,
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    UMBRAL=700;
-    UMBRAL_WALL=850;
-
+    UMBRAL=750;
+    UMBRAL_WALL=250;
 
 //	THE FOLLOWING IS JUST AN EXAMPLE
 //	To use innerModelPath parameter you should uncomment specificmonitor.cpp readConfig method content
@@ -109,7 +108,7 @@ std::pair<float,float> SpecificWorker::repulsion()
     std::ranges::sort(velLaser, {}, &RoboCompLaserMulti::TData::dist);
     
     //VELOCIDAD POR FUNCION SIGMOIDE
-    repulsion_data.first = ((-2/(1+ exp((velLaser.front().dist-UMBRAL)/400)))+1) * 1250;
+    repulsion_data.first = ((-2/(1+ exp((velLaser.front().dist-UMBRAL)/500)))+1) * 1250;
 
     //FALTAN LAS OCLUSION DE ESQUINAS, SI ES IGUAL SECCIONDE VECTOR LEFT Y RIGHT
     
@@ -287,6 +286,7 @@ int SpecificWorker::spiral()
         velGiro -=0.0005;
     return 3;
 }
+
 std::pair<float,float> SpecificWorker::spiral_wall()
 {
         std::pair<float,float> repulsion_data;
@@ -295,7 +295,8 @@ std::pair<float,float> SpecificWorker::spiral_wall()
     
     //dividiremos el LiDar en 6 sectores usando los laterales para el equilibrio del la pared
     //RoboCompLaserMulti::TLaserData sideUp;
-    //RoboCompLaserMulti::TLaserData sideDown;    
+    //RoboCompLaserMulti::TLaserData sideDown;
+
     RoboCompLaserMulti::TLaserData frontRight;
     RoboCompLaserMulti::TLaserData frontLeft;
     RoboCompLaserMulti::TData right;
@@ -305,21 +306,6 @@ std::pair<float,float> SpecificWorker::spiral_wall()
     int direction;
     //direction = 0 --> izquierda
     //direction = 1 --> derecha
-
-    //Obtenemos la secion frontal 
-    velLaser.assign(ldata.begin() + 3 * part -part/ 2, ldata.begin() + 3 * part + part/ 2);
-    std::ranges::sort(velLaser, {}, &RoboCompLaserMulti::TData::dist);
-
-    //VELOCIDAD POR FUNCION SIGMOIDE
-    double sinAdv = (-2/(1+ exp((velLaser.front().dist-UMBRAL)/400)))+1;
-    repulsion_data.first = sinAdv * 1250;
-    
-    //frontRight.assign(ldata.begin() + part * 2, ldata.begin()+ part * 3);
-    //frontLeft.assign(ldata.begin() + part * 3, ldata.begin() + part * 4);
-
-
-     //   sideUp.assign(ldata.begin() , ldata.begin()+ part );
-     //   sideDown.assign(ldata.begin() + part, ldata.begin() + part * 2);
     if (ldata.at(106).dist < ldata.at(563).dist)
     {
         right =ldata.at(106);
@@ -330,6 +316,37 @@ std::pair<float,float> SpecificWorker::spiral_wall()
         right =ldata.at(563);
         direction = -1;
     }
+
+    //Obtenemos la secion frontal 
+    velLaser.assign(ldata.begin() + 3 * part -part/ 2, ldata.begin() + 3 * part + part/ 2);
+    std::ranges::sort(velLaser, {}, &RoboCompLaserMulti::TData::dist);
+    if(velLaser.front().dist-UMBRAL < 150)
+    {
+        if(UMBRAL_WALL > 3500)
+        {
+            UMBRAL_WALL = 600;
+        }
+        else
+        {
+            qInfo() << "Aumento umbral" << UMBRAL_WALL;
+            UMBRAL_WALL += 1;
+        }
+
+    }
+
+    //VELOCIDAD POR FUNCION GAUSSIANA POR EL ERROR DE DESVIACION DEL SEGUIMIENTO
+    //y = e^-(x²/(2*k)²)
+    double sinAdv = exp(-(pow(right.dist-UMBRAL_WALL,2)/10000000));
+    //double sinAdv = ((-2/(1+ exp((velLaser.front().dist-UMBRAL)/500)))+1);
+    repulsion_data.first = sinAdv * 1250;
+    
+    //frontRight.assign(ldata.begin() + part * 2, ldata.begin()+ part * 3);
+    //frontLeft.assign(ldata.begin() + part * 3, ldata.begin() + part * 4);
+
+
+     //   sideUp.assign(ldata.begin() , ldata.begin()+ part );
+     //   sideDown.assign(ldata.begin() + part, ldata.begin() + part * 2);
+
     //difWall = 0;
     //for ( int i = 0; i < sideUp.size();i++)
     //{
@@ -349,12 +366,11 @@ std::pair<float,float> SpecificWorker::spiral_wall()
     }
      */
     //else{
-        repulsion_data.second =direction * ((right.dist - UMBRAL_WALL)/1000) * 1.25 ;
+        repulsion_data.second = direction * ((right.dist - UMBRAL_WALL)/1000) * 1.25 ;
         //if (velGiro > 3.5)
         //   return 4;
         if (right.dist < UMBRAL_WALL + 100)
         {
-            qInfo() << "REDUCCION";
             repulsion_data.second = repulsion_data.second * (1-sinAdv);
         }
         qInfo() << "dist" << right.dist ;
@@ -362,6 +378,7 @@ std::pair<float,float> SpecificWorker::spiral_wall()
             repulsion_data.second = -1.25;
         else if(repulsion_data.second > 1.25)
             repulsion_data.second = 1.25;
+    qInfo() << "Umbral" << UMBRAL_WALL;
         qInfo() << "espiral: " << repulsion_data.first << " " << repulsion_data.second;
         return repulsion_data;
     //}
@@ -403,11 +420,11 @@ void SpecificWorker::compute()
         {
             std::pair<float,float> vel;
             vel = repulsion();
-            velAdv = vel.first * 0.25;
-            velGiro = vel.second * 0.25;
+            velAdv = vel.first * 0.85;
+            velGiro = vel.second * 0.20;
             vel = spiral_wall();
-            velAdv += vel.first * 0.75;
-            velGiro += vel.second * 0.75;
+            velAdv += vel.first * 0.15;
+            velGiro += vel.second * 0.80;
             break;
         }
         default:

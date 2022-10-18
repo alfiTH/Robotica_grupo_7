@@ -37,9 +37,11 @@ Q_OBJECT
 public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
+    std::pair<float,float> repulsion();
     int go_straight();
     int follow_wall();
     int spiral();
+    std::pair<float,float> spiral_wall();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
 
@@ -63,6 +65,7 @@ private:
     float factorVel;
     bool initSpiral;
     int UMBRAL;
+    int UMBRAL_WALL;
     int mode;
 
 };

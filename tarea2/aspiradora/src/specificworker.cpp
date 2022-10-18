@@ -136,10 +136,10 @@ std::pair<float,float> SpecificWorker::repulsion()
     {
         repulsion_data.second += n.angle * abs(n.angle)  * -20/n.dist;
     }
-    if (repulsion_data.first < 100 and repulsion_data.first > -100 and repulsion_data.second <0.05 and repulsion_data.second > -0.05){
+    if (repulsion_data.first < 200 and repulsion_data.first > -200 and repulsion_data.second <0.05 and repulsion_data.second > -0.05){
         repulsion_data.second = abs(repulsion_data.second)/repulsion_data.second * 1.2;
         try{
-            this->differentialrobotmulti_proxy->setSpeedBase(2, -500, repulsion_data.second);
+            this->differentialrobotmulti_proxy->setSpeedBase(2, -250, repulsion_data.second);
             sleep(3);
         }
         catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
@@ -329,7 +329,7 @@ std::pair<float,float> SpecificWorker::spiral_wall()
         else
         {
             qInfo() << "Aumento umbral" << UMBRAL_WALL;
-            UMBRAL_WALL += 1;
+            UMBRAL_WALL += 10;
         }
 
     }
@@ -420,11 +420,11 @@ void SpecificWorker::compute()
         {
             std::pair<float,float> vel;
             vel = repulsion();
-            velAdv = vel.first * 0.85;
-            velGiro = vel.second * 0.20;
+            velAdv = vel.first * 0.75;
+            velGiro = vel.second * 0.8;
             vel = spiral_wall();
-            velAdv += vel.first * 0.15;
-            velGiro += vel.second * 0.80;
+            velAdv += vel.first * 0.25;
+            velGiro += vel.second * 0.2;
             break;
         }
         default:

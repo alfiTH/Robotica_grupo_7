@@ -65,9 +65,9 @@ private:
     float factorVel;
     bool initSpiral;
     int UMBRAL;
+    int UMBRAL_REPULSION;
     int UMBRAL_WALL;
     int mode;
-
 };
 
 #endif

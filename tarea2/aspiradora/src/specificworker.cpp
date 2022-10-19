@@ -50,7 +50,8 @@ bool sortbysec(const auto &a,
 
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
-    UMBRAL=750;
+    UMBRAL=275;
+    UMBRAL_REPULSION = 1000;
     UMBRAL_WALL=250;
 
 //	THE FOLLOWING IS JUST AN EXAMPLE
@@ -75,7 +76,7 @@ void SpecificWorker::initialize(int period)
     velGiro = 0;
     velAdv = 0;
     initSpiral = false;
-    mode = 5;
+    mode = 1;
     std::mt19937 rngAux(dev());
     rng  = std::move(rngAux);
     std::uniform_int_distribution<std::mt19937::result_type> distAux(0,M_PI*2); // distribution in range [1, 6]
@@ -92,7 +93,8 @@ void SpecificWorker::initialize(int period)
 	}
 
 }
-
+//    repulsion_data.first --> Velocidad de avance
+//    repulsion_data.second --> Velocidad de giro
 std::pair<float,float> SpecificWorker::repulsion()
 {
     const auto ldata = lasermulti_proxy->getLaserData(2);
@@ -103,15 +105,14 @@ std::pair<float,float> SpecificWorker::repulsion()
     RoboCompLaserMulti::TLaserData velLaser;
     std::pair<float,float> repulsion_data;
 
-
     velLaser.assign(ldata.begin()+ldata.size()/3, ldata.end()-ldata.size()/3);
     std::ranges::sort(velLaser, {}, &RoboCompLaserMulti::TData::dist);
     
     //VELOCIDAD POR FUNCION SIGMOIDE
-    repulsion_data.first = ((-2/(1+ exp((velLaser.front().dist-UMBRAL)/500)))+1) * 1250;
+    repulsion_data.first = ((-2/(1+ exp((velLaser.front().dist-UMBRAL)/300)))+1) * 1250;
 
     //FALTAN LAS OCLUSION DE ESQUINAS, SI ES IGUAL SECCIONDE VECTOR LEFT Y RIGHT
-    
+
     
     //Comprobar que estén bien los intervalos
     right.assign(ldata.begin(), ldata.begin()+ldata.size()/2);
@@ -130,16 +131,20 @@ std::pair<float,float> SpecificWorker::repulsion()
     }
     laser.assign(right.begin(), right.end());
     laser.insert(laser.end(), left.begin(), left.end());
-    repulsion_data.second= 0;
+    repulsion_data.second = 0;
     //qInfo() << "max/min: " << maxAng.angle << " " << minAng.angle;
     for (auto &n:laser)
     {
+        if(n.dist > UMBRAL_REPULSION)
+        {
+            n.dist = UMBRAL_REPULSION;
+        }
         repulsion_data.second += n.angle * abs(n.angle)  * -20/n.dist;
     }
     if (repulsion_data.first < 200 and repulsion_data.first > -200 and repulsion_data.second <0.05 and repulsion_data.second > -0.05){
         repulsion_data.second = abs(repulsion_data.second)/repulsion_data.second * 1.2;
         try{
-            this->differentialrobotmulti_proxy->setSpeedBase(2, -250, repulsion_data.second);
+            this->differentialrobotmulti_proxy->setSpeedBase(2, -100, repulsion_data.second);
             sleep(3);
         }
         catch (const Ice::Exception &e) { std::cout << e.what() << std::endl; };
@@ -202,7 +207,6 @@ int SpecificWorker::go_straight()
     
     return 1;
 }
-
 
 int SpecificWorker::follow_wall()
 {
@@ -397,9 +401,14 @@ void SpecificWorker::compute()
         switch (mode)
         {
         //Go_straight
-        case 1:
-            mode = go_straight();
+        case 1: {
+            std::pair<float, float> vel;
+            vel = repulsion();
+            velAdv = vel.first;
+            velGiro = vel.second*0.65;
+
             break;
+        }
         //follow_wall
         case 2:
             mode = follow_wall();
@@ -420,11 +429,11 @@ void SpecificWorker::compute()
         {
             std::pair<float,float> vel;
             vel = repulsion();
-            velAdv = vel.first * 0.75;
+            velAdv = vel.first * 0.65;
             velGiro = vel.second * 0.8;
-            vel = spiral_wall();
-            velAdv += vel.first * 0.25;
-            velGiro += vel.second * 0.2;
+            // vel = spiral_wall();
+            //velAdv += vel.first * 0.25;
+            //velGiro += vel.second * 0.2;
             break;
         }
         default:

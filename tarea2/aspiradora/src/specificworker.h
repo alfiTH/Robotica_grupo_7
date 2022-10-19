@@ -68,6 +68,8 @@ private:
     int UMBRAL_REPULSION;
     int UMBRAL_WALL;
     int mode;
+    float k;
+    int contador;
 };
 
 #endif

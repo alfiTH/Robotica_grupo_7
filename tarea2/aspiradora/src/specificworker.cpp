@@ -51,6 +51,7 @@ bool sortbysec(const auto &a,
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
 {
     UMBRAL=275;
+    k = 0.65;
     UMBRAL_REPULSION = 1000;
     UMBRAL_WALL=250;
 
@@ -76,6 +77,7 @@ void SpecificWorker::initialize(int period)
     velGiro = 0;
     velAdv = 0;
     initSpiral = false;
+    contador = 0;
     mode = 1;
     std::mt19937 rngAux(dev());
     rng  = std::move(rngAux);
@@ -402,10 +404,24 @@ void SpecificWorker::compute()
         {
         //Go_straight
         case 1: {
+            qInfo() << "Contador: " << contador<< "k " <<k;
             std::pair<float, float> vel;
-            vel = repulsion();
-            velAdv = vel.first;
-            velGiro = vel.second*0.65;
+
+            if(contador < 500)
+            {
+                vel = repulsion();
+                velAdv = vel.first;
+                velGiro = vel.second * k;
+                contador++;
+            }
+            else
+            {
+                if (k > 0.8)
+                    k = 0.5;
+                else
+                    k+=0.05;
+                contador = 0;
+            }
 
             break;
         }
@@ -429,11 +445,11 @@ void SpecificWorker::compute()
         {
             std::pair<float,float> vel;
             vel = repulsion();
-            velAdv = vel.first * 0.65;
+            velAdv = vel.first * 0.80;
             velGiro = vel.second * 0.8;
-            // vel = spiral_wall();
-            //velAdv += vel.first * 0.25;
-            //velGiro += vel.second * 0.2;
+             vel = spiral_wall();
+            velAdv += vel.first * 0.20;
+            velGiro += vel.second * 0.2;
             break;
         }
         default:

@@ -19,10 +19,8 @@
 
 /**
 	\brief
-	@author authorname
+	@author Alejandro Torrejón Harto and María Segovia Ferreira
 */
-
-
 
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
@@ -38,38 +36,28 @@ public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
     std::pair<float,float> repulsion();
-    int go_straight();
-    int follow_wall();
-    int spiral();
-    std::pair<float,float> spiral_wall();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
-
 
 public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+    
 private:
 	std::shared_ptr < InnerModel > innerModel;
 	bool startup_check_flag;
-
-    std::random_device dev;
-    std::mt19937 rng;
-    std::uniform_int_distribution<std::mt19937::result_type> dist6;
 
     float velGiro;
     float velAdv;
     float velGiroOld;
     float velAdvOld;
-    float factorVel;
-    bool initSpiral;
+
+    int contador;
+
     int UMBRAL;
     int UMBRAL_REPULSION;
-    int UMBRAL_WALL;
-    int mode;
+    int idGiraff;
     float k;
-    int contador;
 };
 
 #endif

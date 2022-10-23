@@ -4,10 +4,10 @@ CommonBehavior.Endpoints=tcp -p 10000
 DifferentialRobotMultiProxy = differentialrobotmulti:tcp -h localhost -p 10007
 LaserMultiProxy = lasermulti:tcp -h localhost -p 10008
 
-UMBRAL=500
-k = 0,75
-UMBRAL_REPULSION = 1000
-id_giraff = 2
+UMBRAL=500             #umbral para velocidad
+k = 0,65                #peso de incremento de giro
+UMBRAL_REPULSION = 1000 #eliminacion de distancias superiores a..
+id_giraff = 2           #id del giraff
 
 InnerModelPath = innermodel.xml
 

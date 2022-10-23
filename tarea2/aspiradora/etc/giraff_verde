@@ -6,8 +6,8 @@ LaserMultiProxy = lasermulti:tcp -h localhost -p 10008
 
 UMBRAL=500
 k = 0,75
-UMBRAL_REPULSION = 1000
-id_giraff = 2
+UMBRAL_REPULSION = 5000
+id_giraff = 1
 
 InnerModelPath = innermodel.xml
 

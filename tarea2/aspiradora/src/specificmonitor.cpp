@@ -90,6 +90,18 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 //	aux.editable = true;
 //	configGetString( "","InnerModelPath", aux.value, "nofile");
 //	params["InnerModelPath"] = aux;
+	RoboCompCommonBehavior::Parameter aux;
+	aux.editable = true;
+	configGetString( "","UMBRAL_WALL", aux.value, "250");
+	params["UMBRAL_WALL"] = aux;
+	configGetString( "","UMBRAL", aux.value, "275");
+	params["UMBRAL"] = aux;
+	configGetString( "","UMBRAL_REPULSION", aux.value, "1000");
+	params["UMBRAL_REPULSION"] = aux;
+	configGetString( "","id_giraff", aux.value, "2");
+	params["id_giraff"] = aux;
+	configGetString( "","k", aux.value, "0.65");
+	params["k"] = aux;
 }
 
 //Check parameters and transform them to worker structure

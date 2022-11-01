@@ -92,8 +92,6 @@ void SpecificMonitor::readConfig(RoboCompCommonBehavior::ParameterList &params )
 //	params["InnerModelPath"] = aux;
 	RoboCompCommonBehavior::Parameter aux;
 	aux.editable = true;
-	configGetString( "","UMBRAL_WALL", aux.value, "250");
-	params["UMBRAL_WALL"] = aux;
 	configGetString( "","UMBRAL", aux.value, "275");
 	params["UMBRAL"] = aux;
 	configGetString( "","UMBRAL_REPULSION", aux.value, "1000");

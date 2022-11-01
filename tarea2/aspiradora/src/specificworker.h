@@ -1,5 +1,5 @@
 /*
- *    Copyright (C) 2022 by YOUR NAME HERE
+ *    Copyright (C) 2022 by Alejandro Torrejón Harto and María Segovia Ferreira
  *
  *    This file is part of RoboComp
  *
@@ -35,6 +35,7 @@ Q_OBJECT
 public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
+    //Función de repulsion
     std::pair<float,float> repulsion();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
 
@@ -42,18 +43,20 @@ public slots:
 	void compute();
 	int startup_check();
 	void initialize(int period);
+    void timer_counter();
     
 private:
 	std::shared_ptr < InnerModel > innerModel;
 	bool startup_check_flag;
 
-    float velGiro;
-    float velAdv;
+    //couter de aleatoridad
+    QTimer *tCounter;
+
+    //velocidades anteriores
     float velGiroOld;
     float velAdvOld;
 
-    int contador;
-
+    //Parametros del config
     int UMBRAL;
     int UMBRAL_REPULSION;
     int idGiraff;

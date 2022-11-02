@@ -18,11 +18,11 @@
  */
 
 
-/** \mainpage RoboComp::control
+/** \mainpage RoboComp::target_eye
  *
  * \section intro_sec Introduction
  *
- * The control component...
+ * The target_eye component...
  *
  * \section interface_sec Interface
  *
@@ -34,7 +34,7 @@
  * ...
  *
  * \subsection install2_ssec Compile and install
- * cd control
+ * cd target_eye
  * <br>
  * cmake . && make
  * <br>
@@ -52,7 +52,7 @@
  *
  * \subsection execution_ssec Execution
  *
- * Just: "${PATH_TO_BINARY}/control --Ice.Config=${PATH_TO_CONFIG_FILE}"
+ * Just: "${PATH_TO_BINARY}/target_eye --Ice.Config=${PATH_TO_CONFIG_FILE}"
  *
  * \subsection running_ssec Once running
  *
@@ -86,10 +86,10 @@
 
 
 
-class control : public RoboComp::Application
+class target_eye : public RoboComp::Application
 {
 public:
-	control (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
+	target_eye (QString prfx, bool startup_check) { prefix = prfx.toStdString(); this->startup_check_flag=startup_check; }
 private:
 	void initialize();
 	std::string prefix;
@@ -100,14 +100,14 @@ public:
 	virtual int run(int, char*[]);
 };
 
-void ::control::initialize()
+void ::target_eye::initialize()
 {
 	// Config file properties read example
 	// configGetString( PROPERTY_NAME_1, property1_holder, PROPERTY_1_DEFAULT_VALUE );
 	// configGetInt( PROPERTY_NAME_2, property1_holder, PROPERTY_2_DEFAULT_VALUE );
 }
 
-int ::control::run(int argc, char* argv[])
+int ::target_eye::run(int argc, char* argv[])
 {
 #ifdef USE_QTGUI
 	QApplication a(argc, argv);  // GUI application
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	::control app(prefix, startup_check_flag);
+	::target_eye app(prefix, startup_check_flag);
 
 	return app.main(argc, argv, configFile.toLocal8Bit().data());
 }

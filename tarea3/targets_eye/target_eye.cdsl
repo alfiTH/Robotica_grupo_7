@@ -6,7 +6,7 @@ import "YoloObjects.idsl";
 import "DifferentialRobotMulti.idsl";
 import "LaserMulti.idsl";
 
-Component control
+Component target_eye
 {
     Communications
     {

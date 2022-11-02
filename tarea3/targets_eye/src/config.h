@@ -5,7 +5,7 @@
 #define USE_QTGUI
 
 
-#define PROGRAM_NAME    "control"
-#define SERVER_FULL_NAME   "RoboComp control:: control"
+#define PROGRAM_NAME    "target_eye"
+#define SERVER_FULL_NAME   "RoboComp target_eye:: target_eye"
 
 #endif

@@ -1,13 +1,13 @@
 CommonBehavior.Endpoints=tcp -p 10000
 
 # Proxies for required interfaces
-DifferentialRobotMultiProxy = differentialrobotmulti:tcp -h localhost -p 10007
-LaserMultiProxy = lasermulti:tcp -h localhost -p 10008
+DifferentialRobotMultiProxy = differentialrobotmulti:tcp -h isbe-05.local -p 10007
+LaserMultiProxy = lasermulti:tcp -h isbe-05.local -p 10008
 
 UMBRAL=500
 k = 0,75
 UMBRAL_REPULSION = 1000
-id_giraff = 2
+id_giraff = 4
 
 InnerModelPath = innermodel.xml
 

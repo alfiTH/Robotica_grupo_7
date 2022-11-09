@@ -147,11 +147,12 @@ std::pair<float,float> SpecificWorker::repulsion()
 
 void SpecificWorker::compute()
 {
-    //El robot siente,luego piensa, luego actua, luego existe
-    try
-    {
-        std::pair<float, float> vel;
+    //El robot siente,luego piensa, luego actua, luegdifferentialrobotmulti_proxy->getBaseState(robot_id, bState)
         vel = repulsion();
+        auto bState;
+        differentialrobotmulti_proxy->getBaseState(idGiraff, bState);
+        qInfo() << bState.x<< bState.z;
+
         if(contador < 500)
         { 
             velAdv = vel.first;

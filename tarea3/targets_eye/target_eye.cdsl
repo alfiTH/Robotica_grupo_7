@@ -1,0 +1,18 @@
+
+
+
+import "CameraRGBDSimple.idsl";
+import "YoloObjects.idsl";
+import "DifferentialRobotMulti.idsl";
+import "LaserMulti.idsl";
+
+Component target_eye
+{
+    Communications
+    {
+	requires CameraRGBDSimple, YoloObjects, DifferentialRobotMulti, LaserMulti;
+	};
+    language Cpp11;
+    gui Qt(QWidget);
+};
+

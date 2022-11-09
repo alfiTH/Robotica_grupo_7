@@ -193,6 +193,11 @@ void SpecificWorker::compute()
     /// YOLO
     RoboCompYoloObjects::TObjects objects = yolo_detect_objects(top_rgb_frame);
 
+   for(auto &n : objects)
+   {
+       qInfo() << "yolo"<<n.x<<n.y<<n.z<<n.id;
+   }
+
     /// draw top image
     cv::imshow("top", top_rgb_frame); cv::waitKey(3);
 
@@ -200,6 +205,9 @@ void SpecificWorker::compute()
     draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
 
     // TODO: state machine to activate basic behaviours. Returns a current target vector
+
+
+
 
     /// eye tracking: tracks  current selected object or  selects a new one
     //eye_track(robot.has_target, robot.target);
@@ -209,7 +217,9 @@ void SpecificWorker::compute()
     if(robot.has_target)
     {
         auto [adv, rot, side] = dwa.update(robot.current_target, current_line, robot.current_adv_speed, robot.current_rot_speed, viewer);
-        //qInfo() << __FUNCTION__ << adv <<  side << rot;
+
+        qInfo() << __FUNCTION__ << adv <<  side << rot;
+        qInfo() << robot.current_target.x()<< robot.current_target.y()<< robot.current_target.z();
         try{ omnirobot_proxy->setSpeedBase(side, adv, rot);}
         catch (const Ice::Exception &e)
         { std::cout << e.what() << " Error reading camerargbdsimple_proxy::getImage" << std::endl;}
@@ -469,8 +479,7 @@ void SpecificWorker::draw_top_camera_optic_ray()
 
     static std::vector<QGraphicsItem *> items;
     for(const auto &i: items)
-        viewer->scene.removeItem(i);
-    items.clear();
+        viewer->scene.removeItem(i);    items.clear();
 
     Eigen::Vector3d x1{0.0, 0.0, 0.0};
     Eigen::Vector3d x2{1000.f, 0.0, 0.0};

@@ -60,6 +60,12 @@ class SpecificWorker : public GenericWorker
     rc::Robot robot;
     rc::Camera top_camera;
 
+    struct grafo
+    {
+
+    };
+
+
     struct Constants
     {
         bool IS_COPPELIA = true;

@@ -222,21 +222,25 @@ void SpecificWorker::compute()
     RoboCompYoloObjects::TObjects objects = yolo_detect_objects(top_rgb_frame);
 
     /// draw top image
-    //cv::imshow("top", top_rgb_frame); cv::waitKey(5);
+    cv::imshow("top", top_rgb_frame); cv::waitKey(5);
 
     /// draw yolo_objects on 2D view
     draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
 
     // TODO:: STATE MACHINE
     // state machine to activate basic behaviours. Returns a  target_coordinates vector
-    //  state_machine(objects, current_line);
+    state_machine(objects, current_line);
+
+
+
 
     /// eye tracking: tracks  current selected object or  IOR if none
     eye_track(robot);
     draw_top_camera_optic_ray();
 
+
     // DWA algorithm
-    auto [adv, rot, side] =  dwa.update(robot.get_robot_target_coordinates(), current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
+    auto [adv, rot, side] =  dwa.update(Eigen::Vector3f{0.f, 0.f, 0.f}, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
 
     //qInfo() << __FUNCTION__ << adv <<  side << rot;
         try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
@@ -246,6 +250,65 @@ void SpecificWorker::compute()
 
     //robot.print();
 }
+////////////////////ESTADOS////////////////////////////////////////////
+
+Eigen::Vector3f SpecificWorker::state_machine(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
+{
+    Eigen::Vector3f target;
+    switch (state)
+    {
+        case SpecificWorker::State::SEARCHING:
+                    {
+                        target = search_state(objects);
+                        break;
+                    }
+        case SpecificWorker::State::APPROACHING:
+                    {
+                        target = approach_state(objects, line);
+                        break;
+                    }
+        case SpecificWorker::State::WAITING:
+                    {
+                        wait_state();
+                        break;
+                    }
+        case SpecificWorker::State::IDLE:
+                    {
+
+                        break;
+                    }
+        default: break;
+    }
+    return target;
+}
+
+Eigen::Vector3f SpecificWorker::search_state(const RoboCompYoloObjects::TObjects &objects)
+{
+    auto target = robot.get_current_target();
+    if(robot.has_target() == false)
+        for(auto &object : objects)
+            if(target.type != object.type)
+            {
+                qInfo() << __FUNCTION__ << object.x << object.y << object.z;
+                robot.set_current_target(object);
+                return Eigen::Vector3f{object.x, object.y, object.z};
+            }
+    return Eigen::Vector3f{0.f, 0.f, 0.f};
+}
+
+Eigen::Vector3f SpecificWorker::approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
+{
+// obj del mismo tipo que el target --> reemplazar
+}
+
+Eigen::Vector3f SpecificWorker::wait_state()
+{
+
+}
+
+
+
+
 
 //////////////////// ELEMENTS OF CONTROL/////////////////////////////////////////////////
 // perception

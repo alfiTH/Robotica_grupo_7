@@ -187,6 +187,7 @@ void SpecificWorker::initialize(int period)
         // create bumper
         float security_threshold = 100;
         robot.create_bumper(security_threshold, viewer);
+        errorFrame = 0;
 
         Period = 50;
         timer.start(Period);
@@ -227,20 +228,23 @@ void SpecificWorker::compute()
     /// draw yolo_objects on 2D view
     draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
 
+/// eye tracking: tracks  current selected object or  IOR if none
+    if (false)
+    {
+        eye_track(robot);
+        draw_top_camera_optic_ray();
+    }
+
+    
+
     // TODO:: STATE MACHINE
     // state machine to activate basic behaviours. Returns a  target_coordinates vector
-    state_machine(objects, current_line);
+    Eigen::Vector3f vectorTarget = state_machine(objects, current_line);
 
-
-
-
-    /// eye tracking: tracks  current selected object or  IOR if none
-    eye_track(robot);
-    draw_top_camera_optic_ray();
-
-
+    
+    qInfo() << __FUNCTION__ <<vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
     // DWA algorithm
-    auto [adv, rot, side] =  dwa.update(Eigen::Vector3f{0.f, 0.f, 0.f}, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
+    auto [adv, rot, side] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
 
     //qInfo() << __FUNCTION__ << adv <<  side << rot;
         try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
@@ -284,26 +288,50 @@ Eigen::Vector3f SpecificWorker::state_machine(const RoboCompYoloObjects::TObject
 
 Eigen::Vector3f SpecificWorker::search_state(const RoboCompYoloObjects::TObjects &objects)
 {
-    auto target = robot.get_current_target();
+    RoboCompYoloObjects::TBox target = robot.get_current_target();
+    qInfo()<<__FUNCTION__<< robot.has_target()<< target.type<<target.x<<target.y<<target.z;
+    
     if(robot.has_target() == false)
         for(auto &object : objects)
             if(target.type != object.type)
             {
-                qInfo() << __FUNCTION__ << object.x << object.y << object.z;
                 robot.set_current_target(object);
-                return Eigen::Vector3f{object.x, object.y, object.z};
+                state =  SpecificWorker::State::APPROACHING;
+                return  robot.get_robot_target_coordinates();
             }
-    return Eigen::Vector3f{0.f, 0.f, 0.f};
+    return  Eigen::Vector3f{50.f, 0.5, 0.f};
 }
 
 Eigen::Vector3f SpecificWorker::approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
 {
-// obj del mismo tipo que el target --> reemplazar
+    RoboCompYoloObjects::TBox target = robot.get_current_target();
+    qInfo()<<__FUNCTION__<< robot.has_target()<< target.type <<target.x<<target.y<<target.z;
+    
+    for(auto &object : objects) 
+        if(target.type == object.type)
+        {
+            robot.set_current_target(object);
+            Eigen::Vector3f tag =robot.get_robot_target_coordinates();
+            if (tag.y()< 500.0){
+                robot.set_has_target(false);
+                state =  SpecificWorker::State::SEARCHING;
+            }
+            errorFrame = 0;
+            return  tag;
+        }
+    
+    errorFrame++;
+    qInfo()<<"nada";
+    if (errorFrame < 4)
+       return  robot.get_robot_target_coordinates();
+    
+    errorFrame = 0;
+     return Eigen::Vector3f{0.f, 0.f, 0.5};
 }
+
 
 Eigen::Vector3f SpecificWorker::wait_state()
 {
-
 }
 
 

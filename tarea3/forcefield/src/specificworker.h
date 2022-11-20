@@ -135,6 +135,7 @@ class SpecificWorker : public GenericWorker
     Eigen::Vector3f search_state(const RoboCompYoloObjects::TObjects &objects);
     Eigen::Vector3f approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line);
     Eigen::Vector3f wait_state();
+    int errorFrame;
 
     float iou(const RoboCompYoloObjects::TBox &a, const RoboCompYoloObjects::TBox &b);
     float closest_distance_ahead(const vector<Eigen::Vector2f> &line);

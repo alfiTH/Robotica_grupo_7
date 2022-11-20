@@ -52,8 +52,7 @@ namespace rc
     void Robot::set_has_target(bool val)
     {
         has_target_flag = val;
-        if(val == false)
-            current_target.type = -1;
+    
     }
     bool Robot::has_target() const
     {

@@ -130,11 +130,12 @@ class SpecificWorker : public GenericWorker
 
     // state machine
     Eigen::Vector3f state_machine(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line);
-    enum class State {IDLE, SEARCHING, APPROACHING, WAITING};
+    enum class State {IDLE, SEARCHING, APPROACHING, WAITING, LOST};
     State state = State::SEARCHING;
     Eigen::Vector3f search_state(const RoboCompYoloObjects::TObjects &objects);
     Eigen::Vector3f approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line);
     Eigen::Vector3f wait_state();
+    Eigen::Vector3f lost_state(const RoboCompYoloObjects::TObjects &objects);
     int errorFrame;
 
     float iou(const RoboCompYoloObjects::TBox &a, const RoboCompYoloObjects::TBox &b);

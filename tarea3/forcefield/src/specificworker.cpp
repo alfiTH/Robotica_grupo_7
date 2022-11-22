@@ -228,12 +228,7 @@ void SpecificWorker::compute()
     /// draw yolo_objects on 2D view
     draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
 
-/// eye tracking: tracks  current selected object or  IOR if none
-    if (false)
-    {
-        eye_track(robot);
-        draw_top_camera_optic_ray();
-    }
+    
 
     
 
@@ -242,7 +237,7 @@ void SpecificWorker::compute()
     Eigen::Vector3f vectorTarget = state_machine(objects, current_line);
 
     
-    qInfo() << __FUNCTION__ <<vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
+    qInfo() << __FUNCTION__ << vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
     // DWA algorithm
     auto [adv, rot, side] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
 
@@ -273,7 +268,12 @@ Eigen::Vector3f SpecificWorker::state_machine(const RoboCompYoloObjects::TObject
                     }
         case SpecificWorker::State::WAITING:
                     {
-                        wait_state();
+                        target = wait_state();
+                        break;
+                    }
+        case SpecificWorker::State::LOST:
+                    {
+                        target = lost_state(objects);
                         break;
                     }
         case SpecificWorker::State::IDLE:
@@ -299,7 +299,7 @@ Eigen::Vector3f SpecificWorker::search_state(const RoboCompYoloObjects::TObjects
                 state =  SpecificWorker::State::APPROACHING;
                 return  robot.get_robot_target_coordinates();
             }
-    return  Eigen::Vector3f{50.f, 0.5, 0.f};
+    return  Eigen::Vector3f{25.f, 0.5, 0.f};
 }
 
 Eigen::Vector3f SpecificWorker::approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
@@ -307,34 +307,68 @@ Eigen::Vector3f SpecificWorker::approach_state(const RoboCompYoloObjects::TObjec
     RoboCompYoloObjects::TBox target = robot.get_current_target();
     qInfo()<<__FUNCTION__<< robot.has_target()<< target.type <<target.x<<target.y<<target.z;
     
-    for(auto &object : objects) 
+    if (robot.get_robot_target_coordinates().y()< 300.0)
+    {
+        robot.set_has_target(false);
+        state =  SpecificWorker::State::WAITING;
+        // try{
+        //     jointmotorsimple_proxy->setPosition("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalPosition{0.f, 1.f});;
+        // }
+        // catch(const Ice::Exception &e)
+        // { std::cout << e.what() << " Error reading jointmotorsimple_proxy"<< std::endl;}
+         
+        return Eigen::Vector3f{0.f, 0.f, 0.f};
+    }
+
+    /// eye tracking: tracks  current selected object or  IOR if none
+    //eye_track(robot);
+
+    for(auto &object : objects) {
         if(target.type == object.type)
         {
             robot.set_current_target(object);
-            Eigen::Vector3f tag =robot.get_robot_target_coordinates();
-            if (tag.y()< 500.0){
-                robot.set_has_target(false);
-                state =  SpecificWorker::State::SEARCHING;
-            }
             errorFrame = 0;
-            return  tag;
+            break;
         }
-    
-    errorFrame++;
-    qInfo()<<"nada";
-    if (errorFrame < 4)
-       return  robot.get_robot_target_coordinates();
-    
-    errorFrame = 0;
-     return Eigen::Vector3f{0.f, 0.f, 0.5};
+        
+        else if (object == objects.back())
+             errorFrame++;
+    }
+
+    if (errorFrame > 4)
+    {
+        state =  SpecificWorker::State::LOST;
+        return  Eigen::Vector3f{0.f, 0.f, 0.f};
+    }
+    return robot.get_robot_target_coordinates();
 }
 
 
 Eigen::Vector3f SpecificWorker::wait_state()
 {
+    qInfo()<<__FUNCTION__;
+    sleep(2);
+    state =  SpecificWorker::State::SEARCHING;
+    return Eigen::Vector3f{0.f, 0.f, 0.f};
+
 }
 
+Eigen::Vector3f SpecificWorker::lost_state(const RoboCompYoloObjects::TObjects &objects)
+{
+    RoboCompYoloObjects::TBox target = robot.get_current_target();
+    qInfo()<<__FUNCTION__<< robot.has_target()<< target.type <<target.x<<target.y<<target.z;
+    for(auto &object : objects) {
+        if(target.type == object.type)
+        {   
+            robot.set_current_target(object);
+            state =  SpecificWorker::State::APPROACHING;
+            return  robot.get_robot_target_coordinates();
+        }
+    }
+    auto tag =robot.get_robot_target_coordinates();
+    return Eigen::Vector3f{-tag.x(), -tag.y(), -tag.z()};
 
+}
 
 
 

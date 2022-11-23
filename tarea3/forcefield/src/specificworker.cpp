@@ -298,8 +298,7 @@ Eigen::Vector3f SpecificWorker::search_state(const RoboCompYoloObjects::TObjects
                 robot.set_current_target(object);
                 state =  SpecificWorker::State::APPROACHING;
                 return  robot.get_robot_target_coordinates();
-            }
-    return  Eigen::Vector3f{25.f, 0.5, 0.f};
+            }    return  Eigen::Vector3f{25.f, 0.5, 0.f};
 }
 
 Eigen::Vector3f SpecificWorker::approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
@@ -307,7 +306,7 @@ Eigen::Vector3f SpecificWorker::approach_state(const RoboCompYoloObjects::TObjec
     RoboCompYoloObjects::TBox target = robot.get_current_target();
     qInfo()<<__FUNCTION__<< robot.has_target()<< target.type <<target.x<<target.y<<target.z;
     
-    if (robot.get_robot_target_coordinates().y()< 300.0)
+    if (robot.get_distance_to_target()< 300.0)
     {
         robot.set_has_target(false);
         state =  SpecificWorker::State::WAITING;

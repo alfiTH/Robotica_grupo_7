@@ -39,6 +39,7 @@
 #include "robot.h"
 #include "camera.h"
 
+
 class SpecificWorker : public GenericWorker
 {
     Q_OBJECT
@@ -59,11 +60,20 @@ class SpecificWorker : public GenericWorker
 
     rc::Robot robot;
     rc::Camera top_camera;
-
-    struct grafo
+    struct Objeto
     {
+        
+    };
+    struct Sala
+    {
+        int ID;
+        std::vector<Objeto> objetos;
+        std::vector<Sala> salasContiguas;
+
 
     };
+
+   
 
 
     struct Constants
@@ -140,6 +150,8 @@ class SpecificWorker : public GenericWorker
 
     float iou(const RoboCompYoloObjects::TBox &a, const RoboCompYoloObjects::TBox &b);
     float closest_distance_ahead(const vector<Eigen::Vector2f> &line);
+
+    void detector_puertas(vector<Eigen::Vector2f> &line);
 
     // DWA
     Dynamic_Window dwa;

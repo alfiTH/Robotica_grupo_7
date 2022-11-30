@@ -23,6 +23,7 @@
 #include <cppitertools/filter.hpp>
 #include <cppitertools/chunked.hpp>
 #include <cppitertools/sliding_window.hpp>
+#include <cppitertools/combinations_with_replacement.hpp>
 
 /**
 * \brief Default constructor
@@ -213,12 +214,19 @@ void SpecificWorker::compute()
 
     /// compute level_lines
     auto omni_lines = get_multi_level_3d_points_omni(omni_depth_frame);
-    //draw_floor_line(omni_lines, {1});
+    draw_floor_line(omni_lines, {1});
     auto current_line = omni_lines[1];  // second line of the list of laser lines at different heights
     //auto top_lines = get_multi_level_3d_points_top(top_depth_frame, top_camera.get_depth_focalx(), top_camera.get_depth_focaly());
-    auto top_lines  = top_camera.get_depth_lines_in_robot(0, 1600, 50, robot.get_tf_cam_to_base());
-    draw_floor_line(top_lines, {1});
+    //auto top_lines  = top_camera.get_depth_lines_in_robot(0, 1600, 50, robot.get_tf_cam_to_base());
+    //draw_floor_line(top_lines, {1});
 
+
+    detector_puertas(current_line);
+/////////////////////////////////////metodo puertas
+    
+
+
+//////////////////////////////fin metodo puertas
     /// YOLO
     RoboCompYoloObjects::TObjects objects = yolo_detect_objects(top_rgb_frame);
 
@@ -228,9 +236,6 @@ void SpecificWorker::compute()
     /// draw yolo_objects on 2D view
     draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
 
-    
-
-    
 
     // TODO:: STATE MACHINE
     // state machine to activate basic behaviours. Returns a  target_coordinates vector
@@ -239,11 +244,11 @@ void SpecificWorker::compute()
     
     qInfo() << __FUNCTION__ << vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
     // DWA algorithm
-    auto [adv, rot, side] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
+    //auto [adv, rot, side] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
 
     //qInfo() << __FUNCTION__ << adv <<  side << rot;
-        try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
-        catch(const Ice::Exception &e){ std::cout << e.what() << "Error connecting to omnirobot" << std::endl;}
+    //  /  try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
+     // /  catch(const Ice::Exception &e){ std::cout << e.what() << "Error connecting to omnirobot" << std::endl;}
     // execute move commands
     //move_robot(force);
 
@@ -366,6 +371,45 @@ Eigen::Vector3f SpecificWorker::lost_state(const RoboCompYoloObjects::TObjects &
     }
     auto tag =robot.get_robot_target_coordinates();
     return Eigen::Vector3f{-tag.x(), -tag.y(), -tag.z()};
+
+}
+
+void SpecificWorker::detector_puertas(vector<Eigen::Vector2f> &line){
+
+    //usamos la derivada de curret line
+    float umbral = 1000;
+    //std::vector<> puertas; 
+    //auto filtrado = std::norm(cppitertools::sliding_window(current_line))
+     std::vector <float> derivada(line.size()-1);
+    for (const auto &&[i, p]: line|iter::sliding_window(2)|iter::enumerate){
+        float resta = p[1].norm() - p[0].norm();
+        //
+        //derivada.emplace_back(); 1 alternativa
+        derivada[i]=resta;
+        //
+    }
+
+    std::vector <std::TuplePrx<int, bool>> peaks;
+    for (auto &&[i, d] : derivada|iter::enumerate)
+    {
+        if(fabs(d) > umbral)
+        {
+            if (d > 0)
+            {
+            peaks.emplace_back(std::make_tuple());
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+    for(auto &&p : peaks | iter::combinations_with_replacement(2))
+    {
+        if()
+    }
+
 
 }
 

@@ -1,6 +1,10 @@
 #include "door_detector.h"
 
-std::vector<Door_detector::Door> Door_detector::detector_puertas(vector<Eigen::Vector2f> &line){
+#include <cppitertools/enumerate.hpp>
+#include <cppitertools/sliding_window.hpp>
+#include <cppitertools/combinations_with_replacement.hpp>
+
+std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen::Vector2f> &line){
 
     //usamos la derivada de curret line
     float umbral = 1000;

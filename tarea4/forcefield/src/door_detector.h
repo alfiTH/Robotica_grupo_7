@@ -17,7 +17,7 @@ class Door_detector
 
         Door_detector();
         ~Door_detector();
-        std::vector<Door_detector::Door> detector(std::vector<Eigen::Vector2f> &line);
+        std::vector<Door> detector(const std::vector<Eigen::Vector2f> &line);
 
     
         

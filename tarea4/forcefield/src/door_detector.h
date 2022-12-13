@@ -28,6 +28,7 @@ class Door_detector
 
                 auto item = viewer->scene.addEllipse(-100, -100, 200, 200, QPen(QColor("magenta"), 20));
                 item->setPos(punto_medio.x(), punto_medio.y());
+                items.push_back(item);
             }
         };
 

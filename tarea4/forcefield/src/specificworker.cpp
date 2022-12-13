@@ -64,6 +64,8 @@ void SpecificWorker::initialize(int period)
 	}
 	else
 	{
+        state_timer = new QTimer(this);
+        state_timer->start(50);
         // graphics
         viewer = new AbstractGraphicViewer(this->beta_frame,  QRectF(-2500, -2500, 5000, 5000));
         this->resize(900,650);
@@ -190,7 +192,7 @@ void SpecificWorker::initialize(int period)
         float security_threshold = 100;
         robot.create_bumper(security_threshold, viewer);
 
-        Period = 50;
+        Period = 10;
         timer.start(Period);
         std::cout << "Worker initialized OK" << std::endl;
 	}
@@ -227,21 +229,8 @@ void SpecificWorker::compute()
         d.draw(viewer);
     }
 
-    /// YOLO
-    RoboCompYoloObjects::TObjects objects = yolo_detect_objects(top_rgb_frame);
-
-    /// draw top image
-    cv::imshow("top", top_rgb_frame); cv::waitKey(5);
-
-    /// draw yolo_objects on 2D view
-    draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
 
 
-    // TODO:: STATE MACHINE
-    // state machine to activate basic behaviours. Returns a  target_coordinates vector
-    Eigen::Vector3f vectorTarget = state_machine.state_machine(objects, current_line);
-
-    
     qInfo() << __FUNCTION__ << vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
     // DWA algorithm
     //auto [adv, rot, side] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
@@ -254,7 +243,12 @@ void SpecificWorker::compute()
 
     //robot.print();
 }
+void SpecificWorker::timer_state_machine()
+{
 
+    //vectorTarget = state_machine.state_machine(objects, current_line);
+
+}
 
 //////////////////// ELEMENTS OF CONTROL/////////////////////////////////////////////////
 // perception

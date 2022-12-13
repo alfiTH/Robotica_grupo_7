@@ -40,6 +40,7 @@
 #include "camera.h"
 #include "state_machine.h"
 #include "door_detector.h"
+#include <QTimer>
 
 
 class SpecificWorker : public GenericWorker
@@ -64,6 +65,9 @@ class SpecificWorker : public GenericWorker
     rc::Camera top_camera;
     State_machine state_machine;
     Door_detector door_detector;
+    Eigen::Vector3f vectorTarget;
+
+    QTimer *state_timer;
 
     struct Objeto
     {
@@ -159,6 +163,8 @@ class SpecificWorker : public GenericWorker
     // Clock
     rc::Timer<> clock;
 
+    public slots:
+        void timer_state_machine();
 
 };
 

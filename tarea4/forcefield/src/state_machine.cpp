@@ -1,13 +1,14 @@
 #include "state_machine.h"
+#include <cppitertools/range.hpp>
 
 ////////////////////ESTADOS////////////////////////////////////////////
 
 
 
-State_machine::State_machine(rc::Robot *robot)
-{
+void State_machine::initialize(rc::Robot *robot){
     this->robot = robot;
-
+    this->errorFrame = 0;
+    this->state = State_machine::State::SEARCHING;
 }
 
 
@@ -101,7 +102,7 @@ Eigen::Vector3f State_machine::approach_state(const RoboCompYoloObjects::TObject
     }
     return robot->get_robot_target_coordinates();
 }
-
+/*
 Eigen::Vector3f State_machine::wait_state()
 {
     static rc::Timer clock;    
@@ -122,8 +123,8 @@ Eigen::Vector3f State_machine::wait_state()
     }
     return Eigen::Vector3f{0.f, 0.f, 0.f};
 }
+*/
 
-/*
 Eigen::Vector3f State_machine::wait_state()
 {
     qInfo()<<__FUNCTION__;
@@ -131,9 +132,9 @@ Eigen::Vector3f State_machine::wait_state()
     state =  State_machine::State::SEARCHING;
     return Eigen::Vector3f{0.f, 0.f, 0.f};
 
-}*/
+}
 
-Eigen::Vector3f State_machine::wait_state()
+Eigen::Vector3f State_machine::lost_state(const RoboCompYoloObjects::TObjects &objects)
 {
     RoboCompYoloObjects::TBox target = robot->get_current_target();
     qInfo()<<__FUNCTION__<< robot->has_target()<< target.type <<target.x<<target.y<<target.z;

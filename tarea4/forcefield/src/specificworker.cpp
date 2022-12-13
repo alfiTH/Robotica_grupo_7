@@ -75,7 +75,7 @@ void SpecificWorker::initialize(int period)
         catch(...){ std::cout << "Error initializing camera " << top_camera_name << ". Aborting" << std::endl; std::terminate();}
 
         // sets servo to zero position
-        // TODO: pasar a Robot
+        // TODO: pasar a Robotdoor_d
         RoboCompJointMotorSimple::MotorState servo_state;
         while(true)
             try
@@ -95,6 +95,7 @@ void SpecificWorker::initialize(int period)
         // initialize robot
         robot.initialize(omnirobot_proxy /*viewer*/);
         robot.add_camera(tf, {"z"}, jointmotorsimple_proxy);
+        state_machine.initialize(&robot);
 
         // get list of object's names from YOLO
         try
@@ -188,7 +189,6 @@ void SpecificWorker::initialize(int period)
         // create bumper
         float security_threshold = 100;
         robot.create_bumper(security_threshold, viewer);
-        errorFrame = 0;
 
         Period = 50;
         timer.start(Period);
@@ -221,12 +221,12 @@ void SpecificWorker::compute()
     //draw_floor_line(top_lines, {1});
 
 
-    detector_puertas(current_line);
-/////////////////////////////////////metodo puertas
-    
+    vector<Door_detector::Door> door = door_detector.detector(current_line);
+    for (Door_detector::Door &d : door)
+    {
+        d.draw(viewer);
+    }
 
-
-//////////////////////////////fin metodo puertas
     /// YOLO
     RoboCompYoloObjects::TObjects objects = yolo_detect_objects(top_rgb_frame);
 
@@ -239,7 +239,7 @@ void SpecificWorker::compute()
 
     // TODO:: STATE MACHINE
     // state machine to activate basic behaviours. Returns a  target_coordinates vector
-    Eigen::Vector3f vectorTarget = state_machine(objects, current_line);
+    Eigen::Vector3f vectorTarget = state_machine.state_machine(objects, current_line);
 
     
     qInfo() << __FUNCTION__ << vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
@@ -635,6 +635,7 @@ void SpecificWorker::draw_dynamic_threshold(float threshold)
 
     items.push_back(viewer->scene.addEllipse(-threshold, -threshold, 2*threshold, 2* threshold, QPen(QColor("yellow"), 20)));
 }
+
 
 ///
 // SUBSCRIPTION to sendData method from JoystickAdapter interface

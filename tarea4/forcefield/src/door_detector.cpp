@@ -19,7 +19,7 @@ std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen
         //
     }
 
-    std::vector <std::TuplePrx<int, bool>> peaks;
+    std::vector <std::tuple<int, bool>> peaks;
     for (auto &&[i, d] : derivada|iter::enumerate)
     {
         if(fabs(d) > umbral)
@@ -35,7 +35,7 @@ std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen
         }
     }
 
-    vector<Eigen::Vector2f> doors;
+    vector<Door> doors;
     for(auto &&p : peaks | iter::combinations_with_replacement(2))
     {
         auto &[p1, pos1] = p[0];
@@ -44,9 +44,13 @@ std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen
         auto v1 = line[p1];
         auto v2 = line[p2];
 
-        if((pos1 and not pos2) or (pos2 and not pos1) and ((v1-v2).norm() < 1100) and ((v1-v2).norm() > 600))
+        if((pos1 and not pos2) or (pos2 and not pos1) and ((v1-v2).norm() < 1000) and ((v1-v2).norm() > 600))
         {
-            doors.push_back((v1+v2)/2);
+            Door door_aux;
+            door_aux.punto_medio= ((v1+v2)/2);
+            door_aux.punto1=v1;
+            door_aux.punto2=v2;
+            doors.push_back(door_aux);
         }
     }
 return doors;

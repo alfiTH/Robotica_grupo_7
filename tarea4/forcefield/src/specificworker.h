@@ -38,6 +38,8 @@
 #include <timer/timer.h>
 #include "robot.h"
 #include "camera.h"
+#include "state_machine.h"
+#include "door_detector.h"
 
 
 class SpecificWorker : public GenericWorker
@@ -60,6 +62,9 @@ class SpecificWorker : public GenericWorker
 
     rc::Robot robot;
     rc::Camera top_camera;
+    State_machine state_machine;
+    Door_detector door_detector;
+
     struct Objeto
     {
         int ID;
@@ -144,8 +149,6 @@ class SpecificWorker : public GenericWorker
 
     float iou(const RoboCompYoloObjects::TBox &a, const RoboCompYoloObjects::TBox &b);
     float closest_distance_ahead(const vector<Eigen::Vector2f> &line);
-
-    void detector_puertas(vector<Eigen::Vector2f> &line);
 
     // DWA
     Dynamic_Window dwa;

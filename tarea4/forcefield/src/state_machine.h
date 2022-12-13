@@ -4,15 +4,17 @@
 
 #include <Eigen/Dense>
 #include <genericworker.h>
+#include <timer/timer.h>
+#include <vector>
 #include "robot.h"
 
 
 class State_machine
 {
     public:
-        State_machine(rc::Robot *robot);
-        ~State_machine();
+        State_machine() = default;
         // state machine
+        void initialize(rc::Robot *robot);
         Eigen::Vector3f state_machine(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line);
         enum class State {IDLE, SEARCHING, APPROACHING, WAITING, LOST};
         State state = State::SEARCHING;

@@ -19,8 +19,10 @@ class Door_detector
             Eigen::Vector2f punto1;
             Eigen::Vector2f punto2;
             float dist_pmedio;
+
             void draw(AbstractGraphicViewer *viewer)
             {
+
                 static std::vector<QGraphicsItem *> items;
                 for(const auto &i: items)
                     viewer->scene.removeItem(i);
@@ -28,6 +30,12 @@ class Door_detector
 
                 auto item = viewer->scene.addEllipse(-100, -100, 200, 200, QPen(QColor("magenta"), 20));
                 item->setPos(punto_medio.x(), punto_medio.y());
+                items.push_back(item);
+                item = viewer->scene.addEllipse(-100, -100, 200, 200, QPen(QColor("green"), 20));
+                item->setPos(punto1.x(), punto1.y());
+                items.push_back(item);
+                item = viewer->scene.addEllipse(-100, -100, 200, 200, QPen(QColor("green"), 20));
+                item->setPos(punto2.x(), punto2.y());
                 items.push_back(item);
             }
         };

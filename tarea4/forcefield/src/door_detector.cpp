@@ -4,6 +4,7 @@
 #include <cppitertools/sliding_window.hpp>
 #include <cppitertools/combinations_with_replacement.hpp>
 
+
 std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen::Vector2f> &line){
 
     //usamos la derivada de curret line
@@ -54,5 +55,4 @@ std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen
         }
     }
 return doors;
-
 }

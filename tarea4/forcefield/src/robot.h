@@ -13,6 +13,7 @@
 #include "camera.h"
 #include <JointMotorSimple.h>
 #include <OmniRobot.h>
+#include "generic_object.h"
 
 namespace rc
 {
@@ -49,8 +50,11 @@ namespace rc
                 void set_has_target(bool val);
                 bool has_target() const;
                 void set_desired_distance_to_target(float dist); //mm
-
-                const float width = 450;
+                void set_current_target( GenericObject &object);
+                void goto_target();
+                void stop();
+                void rotate(float vel_rotation);
+        const float width = 450;
                 const float length = 450;
                 const float semi_width = width / 2;
                 const float semi_height = length / 2;
@@ -75,6 +79,7 @@ namespace rc
 
                 RoboCompYoloObjects::TBox current_target{.type = -1};
                 bool has_target_flag = false;
+                float pure_rotation = 0.f;
                 std::map<float, float> bumper;
                 Eigen::ArrayXf sector1, sector2, sector3,  sector4, sector5;
 

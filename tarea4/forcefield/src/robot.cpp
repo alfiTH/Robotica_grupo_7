@@ -14,9 +14,6 @@ namespace rc
     }
     Eigen::Vector3f Robot::get_robot_target_coordinates()
     {
-        if(not has_target_flag)
-            return Eigen::Vector3f{0.f, 0.f, 0.f};
-
         Eigen::Transform<float, 3, Eigen::Affine> tf = get_tf_cam_to_base();
         Eigen::Vector3f target = tf * get_camera_target_coordinates();
         target[2] = 0.f;  // dismiss pure rotation here
@@ -48,6 +45,7 @@ namespace rc
     {
         current_target = target;
         has_target_flag = true;
+        pure_rotation = 0;
     }
     void Robot::set_has_target(bool val)
     {
@@ -87,6 +85,44 @@ namespace rc
     {
         return get_robot_target_coordinates().norm();
     }
+
+    void Robot::set_current_target( GenericObject &object)
+    {
+        set_current_target(object.getObject());
+        pure_rotation = 0.f;
+    }
+    void Robot::goto_target()
+    {
+        Eigen::Vector3f vel;
+        if(pure_rotation >  0.0f)
+        {
+            vel.x() = 0;
+            vel.y() = pure_rotation;
+            vel.z() = 0;
+        }
+        else if(has_target_flag)
+        {
+            auto target = get_robot_target_coordinates();
+            //DWA algorithm
+        }
+        else {
+            vel.x() = 0;
+            vel.y() = 0;
+            vel.z() = 0;
+
+        }
+        // Set_speed_base
+    }
+    void Robot::stop()
+    {
+        set_has_target(false);
+        pure_rotation = 0;
+    }
+    void Robot::rotate(float vel_rotation)
+    {
+        pure_rotation = vel_rotation;
+    }
+
     Eigen::Transform<float, 3, Eigen::Affine> Robot::get_tf_cam_to_base()
     {
 //        Eigen::Transform<float, 3, Eigen::Affine> tf = Eigen::Translation3f(Eigen::Vector3f{0.f, 0.f, top_camera_height}) *

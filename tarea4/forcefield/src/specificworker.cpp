@@ -233,11 +233,7 @@ void SpecificWorker::compute()
 
     qInfo() << __FUNCTION__ << vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
     // DWA algorithm
-    //auto [adv, rot, side] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
 
-    //qInfo() << __FUNCTION__ << adv <<  side << rot;
-    //  /  try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
-     // /  catch(const Ice::Exception &e){ std::cout << e.what() << "Error connecting to omnirobot" << std::endl;}
     // execute move commands
     //move_robot(force);
 

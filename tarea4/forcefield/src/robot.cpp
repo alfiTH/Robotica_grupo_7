@@ -104,14 +104,17 @@ namespace rc
         {
             auto target = get_robot_target_coordinates();
             //DWA algorithm
+            [vel.x(), vel.y(), vel.z()] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
         }
         else {
             vel.x() = 0;
             vel.y() = 0;
             vel.z() = 0;
-
         }
         // Set_speed_base
+         qInfo() << __FUNCTION__ << vel.x() <<  vel.y() << vel.z();
+         try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
+         catch(const Ice::Exception &e){ std::cout << e.what() << "Error connecting to omnirobot" << std::endl;}
     }
     void Robot::stop()
     {

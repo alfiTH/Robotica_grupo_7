@@ -91,28 +91,33 @@ namespace rc
         set_current_target(object.getObject());
         pure_rotation = 0.f;
     }
-    void Robot::goto_target()
+    void Robot::goto_target(vector<Eigen::Vector2f> current_line, AbstractGraphicViewer *viewer)
     {
-        Eigen::Vector3f vel;
+        //Eigen::Vector3f vel;
+
+        float side, adv, rot;
         if(pure_rotation >  0.0f)
         {
-            vel.x() = 0;
-            vel.y() = pure_rotation;
-            vel.z() = 0;
+            side = 0;
+            rot = pure_rotation;
+            adv = 0;
         }
         else if(has_target_flag)
         {
             auto target = get_robot_target_coordinates();
             //DWA algorithm
-            [vel.x(), vel.y(), vel.z()] =  dwa.update(vectorTarget, current_line, robot.get_current_advance_speed(), robot.get_current_rot_speed(), viewer);
+            auto [x_, y_, z_] =  dwa.update(target, current_line, get_current_advance_speed(), get_current_rot_speed(), viewer);
+            side = x_;
+            adv = y_;
+            rot = z_;
         }
         else {
-            vel.x() = 0;
-            vel.y() = 0;
-            vel.z() = 0;
+            side = 0;
+            adv = 0;
+            rot = 0;
         }
         // Set_speed_base
-         qInfo() << __FUNCTION__ << vel.x() <<  vel.y() << vel.z();
+         qInfo() << __FUNCTION__ << side << adv << rot;
          try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }
          catch(const Ice::Exception &e){ std::cout << e.what() << "Error connecting to omnirobot" << std::endl;}
     }

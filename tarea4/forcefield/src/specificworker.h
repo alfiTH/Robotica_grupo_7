@@ -154,8 +154,7 @@ class SpecificWorker : public GenericWorker
     float iou(const RoboCompYoloObjects::TBox &a, const RoboCompYoloObjects::TBox &b);
     float closest_distance_ahead(const vector<Eigen::Vector2f> &line);
 
-    // DWA
-    Dynamic_Window dwa;
+
     float gaussian(float x);
 
     std::map<float, float> bumper_points;

@@ -79,15 +79,15 @@ void SpecificWorker::initialize(int period)
         // sets servo to zero position
         // TODO: pasar a Robotdoor_d
         RoboCompJointMotorSimple::MotorState servo_state;
-        while(true)
-            try
-            {
-                servo_state = jointmotorsimple_proxy->getMotorState("camera_pan_joint");
-                if( fabs(servo_state.pos)  < 0.03)  break;
-                jointmotorsimple_proxy->setPosition("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalPosition{0.f, 1.f});
-                usleep(100000);
-            }
-            catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; return;}
+//        while(true)
+//            try
+//            {
+//                servo_state = jointmotorsimple_proxy->getMotorState("camera_pan_joint");
+//                if( fabs(servo_state.pos)  < 0.03)  break;
+//                jointmotorsimple_proxy->setPosition("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalPosition{0.f, 1.f});
+//                usleep(100000);
+//            }
+//            catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; return;}
 
         // camera position wrt to robot
         Eigen::Transform<float, 3, Eigen::Affine> tf(Eigen::Translation3f(Eigen::Vector3f{0.f, 0.f, consts.top_camera_height}) *
@@ -223,11 +223,8 @@ void SpecificWorker::compute()
     //draw_floor_line(top_lines, {1});
 
 
-    vector<Door_detector::Door> door = door_detector.detector(current_line);
-    for (Door_detector::Door &d : door)
-    {
-        d.draw(viewer);
-    }
+    std::vector<Door_detector::Door> door = door_detector.detector(current_line);
+    door_detector.draw(viewer, door);
 
 
 

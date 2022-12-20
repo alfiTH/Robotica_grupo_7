@@ -14,8 +14,6 @@ GenericObject::GenericObject(const Door_detector::Door &door)
     box.x= door.punto_medio.x();
     box.y= door.punto_medio.y();
     object = box;
-
-
 }
 
 RoboCompYoloObjects::TBox GenericObject::getObject()

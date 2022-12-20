@@ -13,6 +13,7 @@
 #include "camera.h"
 #include <JointMotorSimple.h>
 #include <OmniRobot.h>
+#include <dynamic_window.h>
 #include "generic_object.h"
 
 namespace rc
@@ -51,7 +52,7 @@ namespace rc
                 bool has_target() const;
                 void set_desired_distance_to_target(float dist); //mm
                 void set_current_target( GenericObject &object);
-                void goto_target();
+                void goto_target(vector<Eigen::Vector2f> current_line, AbstractGraphicViewer *viewer);
                 void stop();
                 void rotate(float vel_rotation);
         const float width = 450;
@@ -82,6 +83,9 @@ namespace rc
                 float pure_rotation = 0.f;
                 std::map<float, float> bumper;
                 Eigen::ArrayXf sector1, sector2, sector3,  sector4, sector5;
+
+                // DWA
+                Dynamic_Window dwa;
 
                 void recompute_bumper(float dynamic_offset);
 

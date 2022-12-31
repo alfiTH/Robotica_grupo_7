@@ -6,6 +6,7 @@
 GenericObject::GenericObject(const RoboCompYoloObjects::TBox &box)
 {
     object = box;
+    type_objet = box.id
 }
 
 GenericObject::GenericObject(const Door_detector::Door &door)
@@ -14,6 +15,7 @@ GenericObject::GenericObject(const Door_detector::Door &door)
     box.x= door.punto_medio.x();
     box.y= door.punto_medio.y();
     object = box;
+    type_objet = "Door"
 }
 
 RoboCompYoloObjects::TBox GenericObject::getObject()
@@ -21,3 +23,8 @@ RoboCompYoloObjects::TBox GenericObject::getObject()
     return object;
 }
 
+
+string GenericObject::getTypeObjet()
+{
+    return type_objet;
+}

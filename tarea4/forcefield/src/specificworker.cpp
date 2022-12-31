@@ -221,26 +221,16 @@ void SpecificWorker::compute()
     //auto top_lines = get_multi_level_3d_points_top(top_depth_frame, top_camera.get_depth_focalx(), top_camera.get_depth_focaly());
     //auto top_lines  = top_camera.get_depth_lines_in_robot(0, 1600, 50, robot.get_tf_cam_to_base());
     //draw_floor_line(top_lines, {1});
-
-
+//
     std::vector<Door_detector::Door> door = door_detector.detector(current_line);
     door_detector.draw(viewer, door);
 
 
-
-    qInfo() << __FUNCTION__ << vectorTarget.x() << vectorTarget.y() << vectorTarget.z();
-    // DWA algorithm
-
-    // execute move commands
-    //move_robot(force);
-
-    //robot.print();
+    robot.goto_target(current_line, viewer);
 }
 void SpecificWorker::timer_state_machine()
 {
-
-    //vectorTarget = state_machine.state_machine(objects, current_line);
-
+    //state_machine.state_machine(objects, current_line);
 }
 
 //////////////////// ELEMENTS OF CONTROL/////////////////////////////////////////////////
@@ -508,8 +498,11 @@ float SpecificWorker::gaussian(float x)
 void SpecificWorker::draw_floor_line(const vector<vector<Eigen::Vector2f>> &lines, std::initializer_list<int> list)    //one vector for each height level
 {
     static std::vector<QGraphicsItem *> items;
-    for(const auto &item: items)
+    for(const auto &item: items){
         viewer->scene.removeItem(item);
+        delete item;
+    }
+
     items.clear();
 
     if(list.size() > lines.size()) {qWarning()<< "Requested list bigger than data. Returning"; return;}
@@ -593,7 +586,7 @@ void SpecificWorker::draw_objects_on_2dview(RoboCompYoloObjects::TObjects object
         viewer->scene.removeItem(i);
     items.clear();
 
-    // draw selected
+// draw selected
 //    auto item = viewer->scene.addRect(-200, -200, 400, 400, QPen(QColor("green"), 20));
 //    Eigen::Vector2f corrected = (m * Eigen::Vector3f(selected.x, selected.y, selected.z)).head(2);
 //    item->setPos(corrected.x(), corrected.y());

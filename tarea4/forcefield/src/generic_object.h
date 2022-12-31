@@ -13,9 +13,12 @@ class GenericObject {
     GenericObject(const RoboCompYoloObjects::TBox &box);
     GenericObject(const Door_detector::Door &door);
     RoboCompYoloObjects::TBox getObject();
+    string getTypeObjet();
 
     private:
+    //std::map<int,string> dic_objet ={{},{},{}}
     RoboCompYoloObjects::TBox object;
+    string type_objet;
 };
 
 

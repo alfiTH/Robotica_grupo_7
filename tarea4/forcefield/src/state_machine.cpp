@@ -71,12 +71,6 @@ Eigen::Vector3f State_machine::approach_state(const RoboCompYoloObjects::TObject
     {
         robot->set_has_target(false);
         state =  State_machine::State::WAITING;
-        // try{
-        //     jointmotorsimple_proxy->setPosition("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalPosition{0.f, 1.f});;
-        // }
-        // catch(const Ice::Exception &e)
-        // { std::cout << e.what() << " Error reading jointmotorsimple_proxy"<< std::endl;}
-         
         return Eigen::Vector3f{0.f, 0.f, 0.f};
     }
 

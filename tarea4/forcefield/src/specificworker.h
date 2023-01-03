@@ -65,26 +65,10 @@ class SpecificWorker : public GenericWorker
     rc::Camera top_camera;
     State_machine state_machine;
     Door_detector door_detector;
-    Eigen::Vector3f vectorTarget;
+   
+    std::vector<GenericObject> objects;
 
     QTimer *state_timer;
-
-    struct Objeto
-    {
-        int ID;
-        string type;
-
-    };
-    struct Sala
-    {
-        int ID;
-        std::vector<Objeto> objetos;
-        std::vector<Sala> salasContiguas;
-
-
-    };
-
-   
 
 
     struct Constants
@@ -132,12 +116,12 @@ class SpecificWorker : public GenericWorker
     cv::Mat read_depth_coppelia();
     void eye_track(rc::Robot &robot); // modifies pan angle
     void move_robot(Eigen::Vector2f force);
-    RoboCompYoloObjects::TObjects yolo_detect_objects(cv::Mat rgb);
+    std::vector<GenericObject> yolo_detect_objects(cv::Mat rgb);
 
     // draw
     void draw_floor_line(const vector<vector<Eigen::Vector2f>> &lines, std::initializer_list<int> list);
     void draw_forces(const Eigen::Vector2f &force, const Eigen::Vector2f &target, const Eigen::Vector2f &res);
-    void draw_objects_on_2dview(RoboCompYoloObjects::TObjects objects, const RoboCompYoloObjects::TBox &selected);
+    void draw_objects_on_2dview(std::vector<GenericObject> objects, const RoboCompYoloObjects::TBox &selected);
     void draw_dynamic_threshold(float threshold);
     void draw_top_camera_optic_ray();
 

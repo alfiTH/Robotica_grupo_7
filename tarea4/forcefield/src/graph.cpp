@@ -73,10 +73,3 @@ void Graph::add_tags(int id, const std::vector<GenericObject> &objects)
         if (!nod.objects.contains(obj.getTypeObjet()))
             nod.objects.insert(obj.getTypeObjet());
 }
-
-
-void Graph::draw(AbstractGraphicViewer *viewer)
-{
-
-
-}

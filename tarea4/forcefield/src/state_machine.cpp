@@ -12,89 +12,134 @@ void State_machine::initialize(rc::Robot *robot){
 }
 
 
-Eigen::Vector3f State_machine::state_machine(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
+void State_machine::state_machine_action(std::vector<GenericObject> &objects)
 {
-    Eigen::Vector3f target;
     switch (state)
     {
+        case State_machine::State::SCAN:
+                    {
+                        scan_state(objects);
+                        break;
+                    }
+
+        case State_machine::State::ID_ROOM:
+                    {
+                        id_room_state(objects);
+                        break;
+                    }
         case State_machine::State::SEARCHING:
                     {
-                        target = search_state(objects);
+                        search_state(objects);
                         break;
                     }
         case State_machine::State::APPROACHING:
                     {
-                        target = approach_state(objects, line);
+                        approach_state(objects);
                         break;
                     }
         case State_machine::State::WAITING:
                     {
-                        target = wait_state();
-                        break;
-                    }
-        case State_machine::State::LOST:
-                    {
-                        target = lost_state(objects);
-                        break;
-                    }
-        case State_machine::State::IDLE:
-                    {
-
+                        wait_state();
                         break;
                     }
         default: break;
     }
-    return target;
 }
 
-Eigen::Vector3f State_machine::search_state(const RoboCompYoloObjects::TObjects &objects)
+void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
 {
-    RoboCompYoloObjects::TBox target = robot->get_current_target();
-    qInfo()<<__FUNCTION__<< robot->has_target()<< target.type<<target.x<<target.y<<target.z;
+    GenericObject target = robot->get_current_target();
+    switch (state)
+    {
+        case State_machine::State::SCAN:
+                    {
+                    
+                        break;
+                    }
+        case State_machine::State::ID_ROOM:
+                    {
+                        
+                        break;
+                    }
+        case State_machine::State::SEARCHING:
+                    {
+                    for(auto &object : objects)
+                    {
+                        if(!target.sameType(object))
+                        {
+                            robot->set_current_target(object);
+                            state =  State_machine::State::APPROACHING;
+                        }   
+                    }
+                    break;
+                    }
+        case State_machine::State::APPROACHING:
+                    {
+                    
+                        break;
+                    }
+        case State_machine::State::WAITING:
+                    {
+                        
+                        break;
+                    }
+        default: break;
+    }
+}
+
+//////////////////////////ACCIONES////////////////////////
+
+void State_machine::scan_state( std::vector<GenericObject> &objects)
+{
+    qInfo()<<__FUNCTION__;
+    static std::vector<string> object;
+    robot->rotate(0.5);
     
-    if(robot->has_target() == false)
-        for(auto &object : objects)
-            if(target.type != object.type)
-            {
-                robot->set_current_target(object);
-                state =  State_machine::State::APPROACHING;
-                return  robot->get_robot_target_coordinates();
-            }    return  Eigen::Vector3f{25.f, 0.5, 0.f};
+    for(auto &object : objects)
+    {
+        
+    }   
+
 }
 
-Eigen::Vector3f State_machine::approach_state(const RoboCompYoloObjects::TObjects &objects, const std::vector<Eigen::Vector2f> &line)
+void State_machine::id_room_state( std::vector<GenericObject> &objects)
 {
-    RoboCompYoloObjects::TBox target = robot->get_current_target();
-    qInfo()<<__FUNCTION__<< robot->has_target()<< target.type <<target.x<<target.y<<target.z;
+    
+    qInfo()<<__FUNCTION__;
+    robot->rotate(0);
+}
+
+void State_machine::search_state( std::vector<GenericObject> &objects)
+{
+    
+    qInfo()<<__FUNCTION__;   
+    robot->rotate(-0.5);
+}
+
+void State_machine::approach_state( std::vector<GenericObject> &objects)
+{
+    GenericObject target = robot->get_current_target();
+    //qInfo()<<__FUNCTION__<< robot->has_target()<< target.type <<target.x<<target.y<<target.z;
     
     if (robot->get_distance_to_target()< 300.0)
     {
         robot->set_has_target(false);
         state =  State_machine::State::WAITING;
-        return Eigen::Vector3f{0.f, 0.f, 0.f};
+        //return Eigen::Vector3f{0.f, 0.f, 0.f};
+        //robot->rotate();
     }
 
     /// eye tracking: tracks  current selected object or  IOR if none
     //eye_track(robot);
 
     for(auto &object : objects) {
-        if(target.type == object.type)
+        if(target.sameType(object))
         {
             robot->set_current_target(object);
             errorFrame = 0;
             break;
         }
-        
-        else if (object == objects.back())
-             errorFrame++;
     }
-
-    if (errorFrame > 4)
-    {
-        state =  State_machine::State::LOST;
-        return  Eigen::Vector3f{0.f, 0.f, 0.f};
-    }
-    return robot->get_robot_target_coordinates();
 }
 /*
 Eigen::Vector3f State_machine::wait_state()
@@ -119,30 +164,14 @@ Eigen::Vector3f State_machine::wait_state()
 }
 */
 
-Eigen::Vector3f State_machine::wait_state()
+void State_machine::wait_state()
 {
     qInfo()<<__FUNCTION__;
     sleep(2);
     state =  State_machine::State::SEARCHING;
-    return Eigen::Vector3f{0.f, 0.f, 0.f};
 
 }
 
-Eigen::Vector3f State_machine::lost_state(const RoboCompYoloObjects::TObjects &objects)
-{
-    RoboCompYoloObjects::TBox target = robot->get_current_target();
-    qInfo()<<__FUNCTION__<< robot->has_target()<< target.type <<target.x<<target.y<<target.z;
-    for(auto &object : objects) {
-        if(target.type == object.type)
-        {   
-            robot->set_current_target(object);
-            state =  State_machine::State::APPROACHING;
-            return  robot->get_robot_target_coordinates();
-        }
-    }
-    auto tag =robot->get_robot_target_coordinates();
-    return Eigen::Vector3f{-tag.x(), -tag.y(), -tag.z()};
 
-}
 
 

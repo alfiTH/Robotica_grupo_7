@@ -37,7 +37,7 @@ namespace rc
                 float get_current_rot_speed() const;
                 float get_target_angle_in_frame() const;
                 float get_current_pan_angle() const;
-                RoboCompYoloObjects::TBox get_current_target() const;
+                GenericObject get_current_target() const;
                 float get_distance_to_target();
                 Eigen::Transform<float, 3, Eigen::Affine> get_tf_cam_to_base();
                 void print();
@@ -47,15 +47,14 @@ namespace rc
                 void set_current_advance_speed(float adv);
                 void set_current_rot_speed(float rot);
                 void set_current_pan_angle(float pan);
-                void set_current_target(const RoboCompYoloObjects::TBox &target);
                 void set_has_target(bool val);
                 bool has_target() const;
                 void set_desired_distance_to_target(float dist); //mm
-                void set_current_target( GenericObject &object);
+                void set_current_target(GenericObject &object);
                 void goto_target(vector<Eigen::Vector2f> current_line, AbstractGraphicViewer *viewer);
                 void stop();
                 void rotate(float vel_rotation);
-        const float width = 450;
+                const float width = 450;
                 const float length = 450;
                 const float semi_width = width / 2;
                 const float semi_height = length / 2;

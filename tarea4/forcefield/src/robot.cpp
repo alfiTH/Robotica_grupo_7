@@ -41,12 +41,6 @@ namespace rc
     {
         camera_pan_angle = std::clamp(pan, min_pan_angle, max_pan_angle);
     }
-    void Robot::set_current_target(const RoboCompYoloObjects::TBox &target)
-    {
-        current_target = target;
-        has_target_flag = true;
-        pure_rotation = 0;
-    }
     void Robot::set_has_target(bool val)
     {
         has_target_flag = val;
@@ -73,7 +67,7 @@ namespace rc
     {
         return camera_pan_angle;
     }
-    RoboCompYoloObjects::TBox Robot::get_current_target() const
+    GenericObject Robot::get_current_target() const
     {
         return current_target;
     }
@@ -86,10 +80,11 @@ namespace rc
         return get_robot_target_coordinates().norm();
     }
 
-    void Robot::set_current_target( GenericObject &object)
+    void Robot::set_current_target(GenericObject &object)
     {
-        set_current_target(object.getObject());
         pure_rotation = 0.f;
+        current_target = object.getObject();
+        has_target_flag = true;
     }
     void Robot::goto_target(vector<Eigen::Vector2f> current_line, AbstractGraphicViewer *viewer)
     {

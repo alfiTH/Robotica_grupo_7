@@ -9,7 +9,6 @@ class Graph
            Node(int id_) : id(id_){};
            int id;
            std::set<std::string> objects;
-           QPointF draw_pos{0.f, 0.f};
        };
        struct Edge
        {
@@ -20,7 +19,6 @@ class Graph
        int add_node(int node_dest);
        void add_edge(int n1, int n2);
        void add_tags(int id, const std::vector<GenericObject> &objects);
-       void draw(AbstractGraphicViewer *viewer);
 
    private:
        int id_counter = 0;

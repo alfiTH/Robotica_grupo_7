@@ -222,15 +222,29 @@ void SpecificWorker::compute()
     //auto top_lines  = top_camera.get_depth_lines_in_robot(0, 1600, 50, robot.get_tf_cam_to_base());
     //draw_floor_line(top_lines, {1});
 //
-    std::vector<Door_detector::Door> door = door_detector.detector(current_line);
-    door_detector.draw(viewer, door);
+    objects = yolo_detect_objects(top_rgb_frame);
 
+    /// draw top image
+    cv::imshow("top", top_rgb_frame); cv::waitKey(5);
 
+    /// draw yolo_objects on 2D view
+    draw_objects_on_2dview(objects, RoboCompYoloObjects::TBox());
+
+    std::vector<Door_detector::Door> doors = door_detector.detector(current_line);
+    door_detector.draw(viewer, doors);
+
+    for (Door_detector::Door &d:doors)
+    {
+        objects.emplace_back(GenericObject(d));
+    }
+
+    state_machine.state_machine_action(objects);
     robot.goto_target(current_line, viewer);
 }
+
 void SpecificWorker::timer_state_machine()
 {
-    //state_machine.state_machine(objects, current_line);
+    state_machine.state_machine_condition(objects);
 }
 
 //////////////////// ELEMENTS OF CONTROL/////////////////////////////////////////////////
@@ -253,9 +267,9 @@ cv::Mat SpecificWorker::read_depth_coppelia()
     { std::cout << e.what() << " Error reading camerargbdsimple_proxy::getImage for depth" << std::endl;}
     return omni_depth_float.clone();
 }
-RoboCompYoloObjects::TObjects SpecificWorker::yolo_detect_objects(cv::Mat rgb)
+std::vector<GenericObject> SpecificWorker::yolo_detect_objects(cv::Mat rgb)
 {
-    RoboCompYoloObjects::TObjects objects;
+   std::vector<GenericObject> objects;
     RoboCompYoloObjects::TData yolo_objects;
     try
     { yolo_objects = yoloobjects_proxy->getYoloObjects(); }
@@ -268,7 +282,8 @@ RoboCompYoloObjects::TObjects SpecificWorker::yolo_detect_objects(cv::Mat rgb)
     // draw boxes
     for(auto &&o: yolo_objects.objects | iter::filter([th = consts.yolo_threshold](auto &o){return o.score > th;}))
     {
-        objects.push_back(o);
+
+        objects.push_back(GenericObject(o));
         auto tl = round(0.002 * (rgb.cols + rgb.rows) / 2) + 1; // line / fontthickness
         const auto &c = COLORS.row(o.type);
         cv::Scalar color(c.x(), c.y(), c.z()); // box color
@@ -579,7 +594,7 @@ void SpecificWorker::draw_top_camera_optic_ray()
     //float z = x4.z() + (x5.z()-x4.z())*k;
     items.push_back(viewer->scene.addLine(0, 0, -x, -y, QPen(QColor("darkgrey"), 20)));
 }
-void SpecificWorker::draw_objects_on_2dview(RoboCompYoloObjects::TObjects objects, const RoboCompYoloObjects::TBox &selected)
+void SpecificWorker::draw_objects_on_2dview(std::vector<GenericObject> objects, const RoboCompYoloObjects::TBox &selected)
 {
     static std::vector<QGraphicsItem *> items;
     for(const auto &i: items)
@@ -593,16 +608,17 @@ void SpecificWorker::draw_objects_on_2dview(RoboCompYoloObjects::TObjects object
 //    items.push_back(item);
 
     // draw rest
-    for(const auto &o: objects)
+    for( auto &o: objects)
     {
-        const auto &c = COLORS.row(o.type);
+        auto obj = o.getObject();
+        const auto &c = COLORS.row(obj.type);
         QColor color(c.z(), c.y(), c.x());  //BGR
         auto item = viewer->scene.addRect(-200, -200, 400, 400, QPen(color, 20));
 
-        Eigen::Vector2f corrected = (robot.get_tf_cam_to_base() * Eigen::Vector3f(o.x, o.y, o.z)).head(2);
+        Eigen::Vector2f corrected = (robot.get_tf_cam_to_base() * Eigen::Vector3f(obj.x, obj.y, obj.z)).head(2);
         item->setPos(corrected.x(), corrected.y());
         items.push_back(item);
-        Eigen::Vector3f yolo = robot.get_tf_cam_to_base() * Eigen::Vector3f(o.x, o.y, o.z);
+        Eigen::Vector3f yolo = robot.get_tf_cam_to_base() * Eigen::Vector3f(obj.x, obj.y, obj.z);
         //qInfo() << __FUNCTION__ << corrected.x() << corrected.y() << yolo.x() << yolo.y();
     }
 }

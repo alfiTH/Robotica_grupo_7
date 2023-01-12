@@ -9,13 +9,13 @@ int Graph::add_node()
         old_id = 0;
         for(auto &&n:this->nodes)
         {
-            if (n.id - old_id >1)
+            if (n.first - old_id >1)
                 {
                     add_node(old_id+1);
                 } 
             else
             {
-                old_id = n.id;
+                old_id = n.first;
             }
         }
         add_node(old_id+1);
@@ -48,9 +48,9 @@ int Graph::add_node(int node_dest)
 
 void Graph::add_edge(int n1, int n2)
 {
-
     std::pair<int, int> edge_key =  make_pair(n1, n2);
-    if (!this->edge.contains(edge_key)) {
+    if (!this->edges.contains(edge_key))
+    {
         // not found
         Graph::Edge edge_value(n1, n2);
         this->edges.insert(edge_key, edge_value);

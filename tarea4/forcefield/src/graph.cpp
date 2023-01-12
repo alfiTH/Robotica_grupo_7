@@ -19,11 +19,13 @@ int Graph::add_node()
             }
         }
         add_node(old_id+1);
+        return old_id+1;
     } else {
        // not found
         add_node(0);
+        return 0;
     }
-    return 0 
+    
 }
 //int id_counter = 0;
 //std::map<int, Node> nodes;
@@ -40,7 +42,7 @@ int Graph::add_node(int node_dest)
         Graph::Node nodo(node_dest);
         this->nodes.insert(node_dest, nodo);
         id_counter = this->nodes.count();
-        return 0
+        return node_dest;
     }
 }
 
@@ -48,28 +50,50 @@ void Graph::add_edge(int n1, int n2)
 {
 
     std::pair<int, int> edge_key =  make_pair(n1, n2);
-    if (this->edge.contains(edge_key)) {
-        // found
-        return -1;
-    }else {
+    if (!this->edge.contains(edge_key)) {
         // not found
         Graph::Edge edge_value(n1, n2);
         this->edges.insert(edge_key, edge_value);
-        return 0;
     }
 }
 
-void Graph::add_tags(int id, const std::vector<GenericObject> &objects)
+void Graph::set_tag(int id, const std::vector<GenericObject> &objects)
 {
     //Si no existe nodo lo creamos
     if (!this->nodes.contains(id))
         add_node(id);
-    
-    //Optenemos el nodo
+    //Obtenemos el nodo
     Node nod = this->nodes.at(id);
 
     //Incorporamos la lista de objetos
     for(auto &&obj:objects)
-        if (!nod.objects.contains(obj.getTypeObjet()))
-            nod.objects.insert(obj.getTypeObjet());
+        if (!nod.objects.contains(obj.getTypeObject()))
+            nod.objects.insert(obj.getTypeObject());
 }
+
+std::set<std::string> Graph::get_tag(int id)
+{
+    std::set<std::string> stringTipoObj;
+    for (const auto &i : nodes) {
+        if(i.first == id)
+        {
+            stringTipoObj.insert(i.second);
+        }
+    }
+    return stringTipoObj;
+}
+
+//void Graph::add_tags(int id, const std::vector<GenericObject> &objects)
+//{
+//    //Si no existe nodo lo creamos
+//    if (!this->nodes.contains(id))
+//        add_node(id);
+//
+//    //Optenemos el nodo
+//    Node nod = this->nodes.at(id);
+//
+//    //Incorporamos la lista de objetos
+//    for(auto &&obj:objects)
+//        if (!nod.objects.contains(obj.getTypeObject()))
+//            nod.objects.insert(obj.getTypeObject());
+//}

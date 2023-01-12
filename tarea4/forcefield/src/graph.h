@@ -18,7 +18,8 @@ class Graph
        int add_node();
        int add_node(int node_dest);
        void add_edge(int n1, int n2);
-       void add_tags(int id, const std::vector<GenericObject> &objects);
+       void set_tag(int id, const  std::set<std::string> objects);
+       std::set<std::string> get_tag(int id);
 
    private:
        int id_counter = 0;

@@ -11,6 +11,11 @@ void State_machine::initialize(rc::Robot *robot){
     this->state = State_machine::State::SEARCHING;
 }
 
+bool in_range(float a, float b, float umbral)
+{
+    return (a < b + umbral) && (a > b - umbral);
+}
+
 
 void State_machine::state_machine_action(std::vector<GenericObject> &objects)
 {
@@ -21,7 +26,11 @@ void State_machine::state_machine_action(std::vector<GenericObject> &objects)
                         scan_state(objects);
                         break;
                     }
-
+        case State_machine::State::FIND:
+                    {
+                        find_state(objects);
+                        break;
+                    }
         case State_machine::State::ID_ROOM:
                     {
                         id_room_state(objects);
@@ -54,6 +63,11 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
         case State_machine::State::SCAN:
                     {
                     
+                        break;
+                    }
+        case State_machine::State::FIND:
+                    {
+                        
                         break;
                     }
         case State_machine::State::ID_ROOM:
@@ -89,17 +103,56 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
 
 //////////////////////////ACCIONES////////////////////////
 
-void State_machine::scan_state( std::vector<GenericObject> &objects)
+void State_machine::scan_state(std::vector<GenericObject> &objects)
 {
     qInfo()<<__FUNCTION__;
-    static std::vector<string> object;
+    static std::vector<GenericObject> objectList;
     robot->rotate(0.5);
+    float umbral_mismo_obj = 200;
     
     for(auto &object : objects)
     {
-        
-    }   
+        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 2000)
+        {
+            string type = object.getTypeObject();
 
+            //El objeto esta repetido?
+            auto itObj = std::find_if(objectList.begin(), objectList.end(),
+                                      [type](GenericObject &s) { return s.getTypeObject() == type; });
+            //el tipo no esta repetido lo añadimos
+            if (itObj == objectList.end()) {
+                objectList.push_back(object);
+                qInfo() << "añadido: " << type;
+            //en caso de mismo tipo observamos si es mismo mediante distancias
+            } else if (!in_range(robot->get_robot_target_coordinates(object.get_target_coordinates()).norm(),
+                                robot->get_robot_target_coordinates(itObj->get_target_coordinates()).norm(), umbral_mismo_obj)  ) {
+                objectList.push_back(object);
+                qInfo() << "añadido: " << type;
+            }
+        }
+    }   
+    if (objectList.size()>4)
+    {
+        if((objectList.end() - 1 == objectList.begin() + 1) && (objectList.end() - 2 == objectList.begin()))
+        {
+            static std::vector<string> typeList;
+            for(auto &object : objectList)
+            {
+                typeList.push_back(object.getTypeObject());
+            }
+            int idNode = graph.add_node();
+            graph.add_tags(idNode, typeList);
+
+        }
+    }
+}
+
+//Buscará en el grafo el camino más corto para llegar a la sala que contiene X objeto
+void State_machine::find_state( std::vector<GenericObject> &objects)
+{
+    
+    qInfo()<<__FUNCTION__;
+    robot->rotate(0);
 }
 
 void State_machine::id_room_state( std::vector<GenericObject> &objects)
@@ -171,6 +224,8 @@ void State_machine::wait_state()
     state =  State_machine::State::SEARCHING;
 
 }
+
+
 
 
 

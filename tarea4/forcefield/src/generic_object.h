@@ -16,6 +16,7 @@ class GenericObject {
     string getTypeObject();
     bool setRoom(int room);
     bool sameType(GenericObject object);
+    Eigen::Vector3f get_target_coordinates();
 
     private:
     //std::map<int,string> dic_object ={{},{},{}}

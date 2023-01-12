@@ -32,6 +32,7 @@ namespace rc
                                 RoboCompJointMotorSimple::JointMotorSimplePrxPtr joint_proxy);
 
                 Eigen::Vector3f get_robot_target_coordinates();
+                Eigen::Vector3f get_robot_target_coordinates( Eigen::Vector3f point);
                 Eigen::Vector3f get_camera_target_coordinates() const;
                 float get_current_advance_speed() const;
                 float get_current_rot_speed() const;

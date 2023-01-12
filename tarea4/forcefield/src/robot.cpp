@@ -20,6 +20,15 @@ namespace rc
         target = target.normalized() * (target.norm() - min_distance_to_target);  // set target coordinates before the real target
         return target;
     }
+    Eigen::Vector3f Robot::get_robot_target_coordinates( Eigen::Vector3f point)
+    {
+        Eigen::Transform<float, 3, Eigen::Affine> tf = get_tf_cam_to_base();
+        Eigen::Vector3f target = tf * point;
+        target[2] = 0.f;  // dismiss pure rotation here
+        target = target.normalized() * (target.norm() - min_distance_to_target);  // set target coordinates before the real target
+        return target;
+    }
+
     Eigen::Vector3f Robot::get_camera_target_coordinates() const
     {
         return Eigen::Vector3f{current_target.x, current_target.y, current_target.z};

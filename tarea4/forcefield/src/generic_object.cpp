@@ -44,3 +44,8 @@ bool GenericObject::sameType(GenericObject object)
 {
     return this->type_object.compare(object.getTypeObject());
 }
+
+Eigen::Vector3f GenericObject::get_target_coordinates();
+{
+    return Eigen::Vector3f{this->object.x, this->object.y, this->object.z};
+}

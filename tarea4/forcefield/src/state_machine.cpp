@@ -112,7 +112,7 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
 {
     qInfo()<<__FUNCTION__;
     static std::vector<GenericObject> objectList;
-    robot->rotate(0.5);
+    robot->rotate(0.1);
     float umbral_mismo_obj = 500;
     
     for(auto &object : objects)
@@ -127,12 +127,12 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
             //el tipo no esta repetido lo añadimos
             if (itObj == objectList.end()) {
                 objectList.push_back(object);
-                std::cout << "añadido directo: " << type;
+                std::cout << "añadido directo: " << type<<std::endl;
             //en caso de mismo tipo observamos si es mismo mediante distancias
             } else if (not in_range(robot->get_robot_target_coordinates(object.get_target_coordinates()).norm(),
                                 robot->get_robot_target_coordinates(itObj->get_target_coordinates()).norm(), umbral_mismo_obj)  ) {
                 objectList.push_back(object);
-                std::cout << "añadido comparado: " << type;
+                std::cout << "añadido comparado: " << type<<std::endl;
             }
         }
     }   
@@ -149,7 +149,7 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
             {
                 if (object.getTypeObject() == "Door"){
                     this->posOldDoorRoom = typeList.size(); 
-                    this->oldDoorRoom = object;
+                    this->oldDoorRoom = &object;
                 }
                 typeList.insert(object.getTypeObject());
             }
@@ -238,9 +238,3 @@ void State_machine::wait_state()
     state =  State_machine::State::SEARCHING;
 
 }
-
-
-
-
-
-

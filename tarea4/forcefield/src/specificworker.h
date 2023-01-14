@@ -58,6 +58,7 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
+        void centerCamera();
 
     private:
 
@@ -68,7 +69,9 @@ class SpecificWorker : public GenericWorker
    
     std::vector<GenericObject> objects;
 
+
     QTimer *state_timer;
+    QTimer *camera_timer;
 
 
     struct Constants

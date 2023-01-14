@@ -37,7 +37,7 @@ SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorke
 */
 SpecificWorker::~SpecificWorker()
 {
-    jointmotorsimple_proxy->setVelocity("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalVelocity{0.f, 1.f});
+    jointmotorsimple_proxy->setVelocity("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalVelocity{0.00000001, 1.f});
 	std::cout << "Destroying SpecificWorker" << std::endl;
 }
 bool SpecificWorker::setParams(RoboCompCommonBehavior::ParameterList params)
@@ -64,8 +64,7 @@ void SpecificWorker::initialize(int period)
 	}
 	else
 	{
-        state_timer = new QTimer(this);
-        state_timer->start(50);
+
         // graphics
         viewer = new AbstractGraphicViewer(this->beta_frame,  QRectF(-2500, -2500, 5000, 5000));
         this->resize(900,650);
@@ -77,18 +76,15 @@ void SpecificWorker::initialize(int period)
         catch(...){ std::cout << "Error initializing camera " << top_camera_name << ". Aborting" << std::endl; std::terminate();}
 
         // sets servo to zero position
-        // TODO: pasar a Robotdoor_d
-        RoboCompJointMotorSimple::MotorState servo_state;
-//        while(true)
-//            try
-//            {
-//                servo_state = jointmotorsimple_proxy->getMotorState("camera_pan_joint");
-//                if( fabs(servo_state.pos)  < 0.03)  break;
-//                jointmotorsimple_proxy->setPosition("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalPosition{0.f, 1.f});
-//                usleep(100000);
-//            }
-//            catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; return;}
 
+        centerCamera();
+
+        RoboCompJointMotorSimple::MotorState servo_state;
+        try
+        {
+            servo_state = jointmotorsimple_proxy->getMotorState("camera_pan_joint");
+        }
+        catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; return;}
         // camera position wrt to robot
         Eigen::Transform<float, 3, Eigen::Affine> tf(Eigen::Translation3f(Eigen::Vector3f{0.f, 0.f, consts.top_camera_height}) *
                                                      Eigen::AngleAxisf(consts.camera_tilt_angle, Eigen::Vector3f::UnitX()) *
@@ -195,6 +191,14 @@ void SpecificWorker::initialize(int period)
             std::cout <<x<<std::endl;
         Period = 10;
         timer.start(Period);
+
+        state_timer = new QTimer(this);
+        connect(state_timer, SIGNAL(timeout()), this, SLOT(timer_state_machine()));
+        state_timer->start(50);
+
+        camera_timer = new QTimer(this);
+        connect(camera_timer, SIGNAL(timeout()), this, SLOT(centerCamera()));
+        camera_timer->start(100);
         std::cout << "Worker initialized OK" << std::endl;
 	}
 }
@@ -224,6 +228,7 @@ void SpecificWorker::compute()
     //draw_floor_line(top_lines, {1});
 //
     objects = yolo_detect_objects(top_rgb_frame);
+    
 
     /// draw top image
     cv::imshow("top", top_rgb_frame); cv::waitKey(5);
@@ -248,6 +253,22 @@ void SpecificWorker::timer_state_machine()
     state_machine.state_machine_condition(objects);
 }
 
+void SpecificWorker::centerCamera(){
+    static RoboCompJointMotorSimple::MotorState servo_state;
+    try
+    {
+        servo_state = jointmotorsimple_proxy->getMotorState("camera_pan_joint");
+        if( fabs(servo_state.pos)  < 0.003) {
+            jointmotorsimple_proxy->setVelocity("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalVelocity{0.00000001, 1.f});
+            return;
+        }
+        //jointmotorsimple_proxy->setPosition("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalPosition{0.f, 1.f});
+        jointmotorsimple_proxy->setVelocity("camera_pan_joint", RoboCompJointMotorSimple::MotorGoalVelocity{-servo_state.pos, 2.f});
+        //usleep(100);
+
+    }
+    catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; return;}
+}
 //////////////////// ELEMENTS OF CONTROL/////////////////////////////////////////////////
 // perception
 cv::Mat SpecificWorker::read_depth_coppelia()

@@ -43,7 +43,10 @@ RoboCompYoloObjects::TBox GenericObject::getObject()
 
 string GenericObject::getTypeObject()
 {
-    return this->type_object;
+    if(type_object == "Door")
+        return type_object;
+    else
+        return yoloName.at((int)this->type_object.at(0));
 }
 
 bool GenericObject::sameType(GenericObject object)

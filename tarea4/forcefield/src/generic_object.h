@@ -10,6 +10,7 @@
 class GenericObject {
 
     public:
+    GenericObject();
     GenericObject(const RoboCompYoloObjects::TBox &box);
     GenericObject(const Door_detector::Door &door);
     RoboCompYoloObjects::TBox getObject();

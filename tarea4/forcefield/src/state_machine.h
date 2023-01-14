@@ -8,18 +8,18 @@
 #include <vector>
 #include "robot.h"
 #include "generic_object.h"
-#include "graph.h"
+#include <graph.h>
 
 class State_machine
 {
     public:
-        State_machine() = default;
+        State_machine();
         // state machine
         void initialize(rc::Robot *robot);
         void state_machine_action(std::vector<GenericObject> &objects);
         void state_machine_condition(std::vector<GenericObject> &objects);     
         enum class State {SEARCHING, APPROACHING, WAITING, ID_ROOM, SCAN, FIND};
-        State state = State::SCAN;
+        State state;
         void search_state(std::vector<GenericObject> &objects);
         void scan_state(std::vector<GenericObject> &objects);
         void find_state(std::vector<GenericObject> &objects);
@@ -31,6 +31,8 @@ class State_machine
     private:
         rc::Robot *robot;
         Graph graph;
+        GenericObject oldDoorRoom;
+        int posOldDoorRoom;
 
 };
 #endif

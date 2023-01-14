@@ -1,5 +1,11 @@
 #include "graph.h"
 
+Graph::Graph()
+{
+    id_counter = 0;
+    std::cout << "GRAPH CREATE"<< endl;
+}
+
 int Graph::add_node()
 {
     int old_id;
@@ -40,8 +46,9 @@ int Graph::add_node(int node_dest)
     } else {
         // not found
         Graph::Node nodo(node_dest);
-        this->nodes.insert(node_dest, nodo);
-        id_counter = this->nodes.count();
+        this->nodes.insert (std::pair<int,Node>(node_dest, nodo));
+        id_counter = this->nodes.size();
+        std::cout<< "Nodo añadido"<<std::endl;
         return node_dest;
     }
 }
@@ -53,11 +60,11 @@ void Graph::add_edge(int n1, int n2)
     {
         // not found
         Graph::Edge edge_value(n1, n2);
-        this->edges.insert(edge_key, edge_value);
+        this->edges.insert(std::pair<std::pair<int, int>,  Edge>(edge_key, edge_value));
     }
 }
 
-void Graph::set_tag(int id, const std::vector<GenericObject> &objects)
+void Graph::set_tags(int id, const std::set<std::string> objects)
 {
     //Si no existe nodo lo creamos
     if (!this->nodes.contains(id))
@@ -66,18 +73,16 @@ void Graph::set_tag(int id, const std::vector<GenericObject> &objects)
     Node nod = this->nodes.at(id);
 
     //Incorporamos la lista de objetos
-    for(auto &&obj:objects)
-        if (!nod.objects.contains(obj.getTypeObject()))
-            nod.objects.insert(obj.getTypeObject());
+    nod.objects = objects;
 }
 
-std::set<std::string> Graph::get_tag(int id)
+std::set<std::string> Graph::get_tags(int id)
 {
     std::set<std::string> stringTipoObj;
     for (const auto &i : nodes) {
         if(i.first == id)
         {
-            stringTipoObj.insert(i.second);
+            return i.second.objects;
         }
     }
     return stringTipoObj;

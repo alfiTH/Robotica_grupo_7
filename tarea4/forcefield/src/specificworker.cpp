@@ -29,7 +29,7 @@
 * \brief Default constructor
 */
 SpecificWorker::SpecificWorker(TuplePrx tprx, bool startup_check) : GenericWorker(tprx)
-{
+{        
 	this->startup_check_flag = startup_check;
 }
 /**
@@ -191,7 +191,8 @@ void SpecificWorker::initialize(int period)
         // create bumper
         float security_threshold = 100;
         robot.create_bumper(security_threshold, viewer);
-
+        for (auto &x : yolo_object_names)
+            std::cout <<x<<std::endl;
         Period = 10;
         timer.start(Period);
         std::cout << "Worker initialized OK" << std::endl;
@@ -275,9 +276,12 @@ std::vector<GenericObject> SpecificWorker::yolo_detect_objects(cv::Mat rgb)
     { yolo_objects = yoloobjects_proxy->getYoloObjects(); }
     catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; return objects;}
 
+
     // remove unwanted types
     yolo_objects.objects.erase(std::remove_if(yolo_objects.objects.begin(), yolo_objects.objects.end(), [names = yolo_object_names](auto p)
-    { return names[p.type] != "person" and names[p.type] != "chair"; }), yolo_objects.objects.end());
+    { return names[p.type] != "person" and names[p.type] != "chair" and names[p.type] != "microwave"
+    and names[p.type] != "tv" and names[p.type] != "refrigerator" and names[p.type] != "potted plant"
+    and names[p.type] != "dining table" and names[p.type] != "toilet" and names[p.type] != "sink"; }), yolo_objects.objects.end());
 
     // draw boxes
     for(auto &&o: yolo_objects.objects | iter::filter([th = consts.yolo_threshold](auto &o){return o.score > th;}))

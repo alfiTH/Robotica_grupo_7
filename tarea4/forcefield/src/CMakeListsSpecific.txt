@@ -9,6 +9,7 @@ SET ( SOURCES
   state_machine.cpp
   door_detector.cpp
   generic_object.cpp
+  graph.cpp
 )
 
 # Headers set

@@ -3,16 +3,21 @@
 
 ////////////////////ESTADOS////////////////////////////////////////////
 
-
+ State_machine::State_machine(){
+    this->state = State::SCAN;
+    this->errorFrame = 0;
+    std::cout << "STATE MACHINE CREATE"<< endl;
+ }
 
 void State_machine::initialize(rc::Robot *robot){
     this->robot = robot;
-    this->errorFrame = 0;
-    this->state = State_machine::State::SEARCHING;
+
+
 }
 
 bool in_range(float a, float b, float umbral)
 {
+    std::cout<<"Distanca a "<< a<< "Distancia b"<<b<<std::endl;
     return (a < b + umbral) && (a > b - umbral);
 }
 
@@ -108,11 +113,11 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
     qInfo()<<__FUNCTION__;
     static std::vector<GenericObject> objectList;
     robot->rotate(0.5);
-    float umbral_mismo_obj = 200;
+    float umbral_mismo_obj = 500;
     
     for(auto &object : objects)
     {
-        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 2000)
+        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 1000)
         {
             string type = object.getTypeObject();
 
@@ -122,27 +127,35 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
             //el tipo no esta repetido lo añadimos
             if (itObj == objectList.end()) {
                 objectList.push_back(object);
-                qInfo() << "añadido: " << type;
+                std::cout << "añadido directo: " << type;
             //en caso de mismo tipo observamos si es mismo mediante distancias
-            } else if (!in_range(robot->get_robot_target_coordinates(object.get_target_coordinates()).norm(),
+            } else if (not in_range(robot->get_robot_target_coordinates(object.get_target_coordinates()).norm(),
                                 robot->get_robot_target_coordinates(itObj->get_target_coordinates()).norm(), umbral_mismo_obj)  ) {
                 objectList.push_back(object);
-                qInfo() << "añadido: " << type;
+                std::cout << "añadido comparado: " << type;
             }
         }
     }   
+    for (auto &x : objectList){
+        std::cout << x.getTypeObject() << " ";
+    }
+    std::cout << std::endl;
     if (objectList.size()>4)
     {
         if((objectList.end() - 1 == objectList.begin() + 1) && (objectList.end() - 2 == objectList.begin()))
         {
-            static std::vector<string> typeList;
+            static std::set<string> typeList;
             for(auto &object : objectList)
             {
-                typeList.push_back(object.getTypeObject());
+                if (object.getTypeObject() == "Door"){
+                    this->posOldDoorRoom = typeList.size(); 
+                    this->oldDoorRoom = object;
+                }
+                typeList.insert(object.getTypeObject());
             }
             int idNode = graph.add_node();
-            graph.add_tags(idNode, typeList);
-
+            graph.set_tags(idNode, typeList);
+            objectList.clear();
         }
     }
 }
@@ -193,6 +206,7 @@ void State_machine::approach_state( std::vector<GenericObject> &objects)
             break;
         }
     }
+    
 }
 /*
 Eigen::Vector3f State_machine::wait_state()

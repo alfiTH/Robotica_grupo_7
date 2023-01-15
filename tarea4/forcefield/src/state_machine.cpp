@@ -120,7 +120,6 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
 {
     qInfo()<<__FUNCTION__;
     static std::vector<GenericObject> objectList;
-    static std::vector<GenericObject*> objListAux;
     robot->rotate(0.1);
     float umbral_mismo_obj = 500;
     
@@ -141,34 +140,17 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
             }
         }
     }   
-    qInfo()<<"TUS MUELTOS";
-    if (objects.size() > 0)
-    {
-        if (objListAux.size() == 0)
-            objListAux.push_back(&objectList.back());
-        else if(!(equal_object(objects.back(), *objListAux.back(), umbral_mismo_obj, this->robot)))
-        {
-            objListAux.push_back(&objectList.back());
-            if (objListAux.size()>2)
-                objListAux.erase (objListAux.begin());
-        }
-    } 
-
     
     for (auto &x : objectList){
         std::cout << x.getTypeObject() << ", ";
     }
     std::cout<<std::endl;
-
-    for (auto &x : objListAux){
-        std::cout << x->getTypeObject() << ", ";
-    }
-    std::cout << std::endl;
     
     if (objectList.size()>4)
     {
-        if(equal_object(*objListAux.at(1), objectList.at(1), umbral_mismo_obj, this->robot) && 
-            (equal_object(*objListAux.at(0), objectList.at(0), umbral_mismo_obj, this->robot)))
+        if(objects.end() == std::find_if(objects.begin(), objects.end(),
+                                [obj = &objectList.at(0), robot=this->robot, umbral_mismo_obj](GenericObject &s) { 
+                                return equal_object(*obj, s, umbral_mismo_obj, robot); }))
         {
             qInfo()<< "SALIDA DE CONDICION///////////////////7";
             std::set<string> typeList;
@@ -205,8 +187,14 @@ void State_machine::id_room_state( std::vector<GenericObject> &objects)
 void State_machine::search_state( std::vector<GenericObject> &objects)
 {
     
-    qInfo()<<__FUNCTION__;   
+    qInfo()<<__FUNCTION__;     
     robot->rotate(-0.5);
+    if( std::find_if(objects.begin(), objects.end(),
+                                [obj = &objectList.at(0), robot=this->robot, umbral_mismo_obj](GenericObject &s) { 
+                                return equal_object(*obj, s, umbral_mismo_obj, robot); }))
+    {
+        state =  State_machine::State::APPROACHING;
+    }
 }
 
 void State_machine::approach_state( std::vector<GenericObject> &objects)

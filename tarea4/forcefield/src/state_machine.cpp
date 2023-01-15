@@ -21,6 +21,14 @@ bool in_range(float a, float b, float umbral)
     return (a < b + umbral) && (a > b - umbral);
 }
 
+bool equal_object(GenericObject object1, GenericObject object2, float tolerance, rc::Robot *robot)
+{
+    return object1.getTypeObject() == object2.getTypeObject() && in_range(
+        robot->get_robot_target_coordinates(object2.get_target_coordinates()).norm(),
+        robot->get_robot_target_coordinates(
+        object1.get_target_coordinates()).norm(), tolerance);
+}
+
 
 void State_machine::state_machine_action(std::vector<GenericObject> &objects)
 {
@@ -112,39 +120,58 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
 {
     qInfo()<<__FUNCTION__;
     static std::vector<GenericObject> objectList;
+    static std::vector<GenericObject*> objListAux;
     robot->rotate(0.1);
     float umbral_mismo_obj = 500;
     
     for(auto &object : objects)
     {
-        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 1000)
+        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 2000)
         {
-            string type = object.getTypeObject();
+            
 
             //El objeto esta repetido?
             auto itObj = std::find_if(objectList.begin(), objectList.end(),
-                                      [type](GenericObject &s) { return s.getTypeObject() == type; });
+                                      [obj = &object, robot=this->robot, umbral_mismo_obj](GenericObject &s) { 
+                                    return equal_object(*obj, s, umbral_mismo_obj, robot); });
             //el tipo no esta repetido lo añadimos
             if (itObj == objectList.end()) {
                 objectList.push_back(object);
-                std::cout << "añadido directo: " << type<<std::endl;
-            //en caso de mismo tipo observamos si es mismo mediante distancias
-            } else if (not in_range(robot->get_robot_target_coordinates(object.get_target_coordinates()).norm(),
-                                robot->get_robot_target_coordinates(itObj->get_target_coordinates()).norm(), umbral_mismo_obj)  ) {
-                objectList.push_back(object);
-                std::cout << "añadido comparado: " << type<<std::endl;
+                std::cout << "añadido : " << object.getTypeObject()<<std::endl;
             }
         }
     }   
+    qInfo()<<"TUS MUELTOS";
+    if (objects.size() > 0)
+    {
+        if (objListAux.size() == 0)
+            objListAux.push_back(&objectList.back());
+        else if(!(equal_object(objects.back(), *objListAux.back(), umbral_mismo_obj, this->robot)))
+        {
+            objListAux.push_back(&objectList.back());
+            if (objListAux.size()>2)
+                objListAux.erase (objListAux.begin());
+        }
+    } 
+
+    
     for (auto &x : objectList){
-        std::cout << x.getTypeObject() << " ";
+        std::cout << x.getTypeObject() << ", ";
+    }
+    std::cout<<std::endl;
+
+    for (auto &x : objListAux){
+        std::cout << x->getTypeObject() << ", ";
     }
     std::cout << std::endl;
+    
     if (objectList.size()>4)
     {
-        if((objectList.end() - 1 == objectList.begin() + 1) && (objectList.end() - 2 == objectList.begin()))
+        if(equal_object(*objListAux.at(1), objectList.at(1), umbral_mismo_obj, this->robot) && 
+            (equal_object(*objListAux.at(0), objectList.at(0), umbral_mismo_obj, this->robot)))
         {
-            static std::set<string> typeList;
+            qInfo()<< "SALIDA DE CONDICION///////////////////7";
+            std::set<string> typeList;
             for(auto &object : objectList)
             {
                 if (object.getTypeObject() == "Door"){

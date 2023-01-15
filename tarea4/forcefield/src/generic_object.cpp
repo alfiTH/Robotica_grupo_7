@@ -12,7 +12,7 @@ GenericObject::GenericObject()
 GenericObject::GenericObject(const RoboCompYoloObjects::TBox &box)
 {
     this->object = box;
-    this->type_object = box.id;
+    this->type_object = yoloName.at(box.id);
 }
 
 GenericObject::GenericObject(const Door_detector::Door &door)
@@ -22,6 +22,15 @@ GenericObject::GenericObject(const Door_detector::Door &door)
     box.y= door.punto_medio.y();
     this->object = box;
     this->type_object = "Door";
+}
+
+GenericObject::GenericObject(const GenericObject &object)
+{
+    RoboCompYoloObjects::TBox box;
+    box.x= object.object.x;
+    box.y= object.object.y;
+    this->object = box;
+    this->type_object = object.type_object;
 }
 
 bool GenericObject::setRoom(int room)
@@ -43,15 +52,12 @@ RoboCompYoloObjects::TBox GenericObject::getObject()
 
 string GenericObject::getTypeObject()
 {
-    if(type_object == "Door")
-        return type_object;
-    else
-        return yoloName.at((int)this->type_object.at(0));
+    return type_object;
 }
 
 bool GenericObject::sameType(GenericObject object)
 {
-    return this->type_object.compare(object.getTypeObject());
+    return this->getTypeObject() == object.getTypeObject();
 }
 
 Eigen::Vector3f GenericObject::get_target_coordinates()

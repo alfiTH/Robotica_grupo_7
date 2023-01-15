@@ -33,10 +33,10 @@ namespace rc
 
                 Eigen::Vector3f get_robot_target_coordinates();
                 Eigen::Vector3f get_robot_target_coordinates( Eigen::Vector3f point);
-                Eigen::Vector3f get_camera_target_coordinates() const;
+                Eigen::Vector3f get_camera_target_coordinates();
                 float get_current_advance_speed() const;
                 float get_current_rot_speed() const;
-                float get_target_angle_in_frame() const;
+                float get_target_angle_in_frame();
                 float get_current_pan_angle() const;
                 GenericObject get_current_target() const;
                 float get_distance_to_target();
@@ -51,10 +51,11 @@ namespace rc
                 void set_has_target(bool val);
                 bool has_target() const;
                 void set_desired_distance_to_target(float dist); //mm
-                void set_current_target(GenericObject &object);
+                void set_current_target(const GenericObject &object);
                 void goto_target(vector<Eigen::Vector2f> current_line, AbstractGraphicViewer *viewer);
                 void stop();
                 void rotate(float vel_rotation);
+                void advance(float vel_adv);
                 const float width = 450;
                 const float length = 450;
                 const float semi_width = width / 2;
@@ -78,9 +79,10 @@ namespace rc
                 RoboCompJointMotorSimple::JointMotorSimplePrxPtr joint_motor_proxy;
                 RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
-                RoboCompYoloObjects::TBox current_target{.type = -1};
+                GenericObject *current_target = new GenericObject();
                 bool has_target_flag = false;
                 float pure_rotation = 0.f;
+                float pure_advance = 0.f;
                 std::map<float, float> bumper;
                 Eigen::ArrayXf sector1, sector2, sector3,  sector4, sector5;
 

@@ -15,6 +15,7 @@ class GenericObject {
     GenericObject();
     GenericObject(const RoboCompYoloObjects::TBox &box);
     GenericObject(const Door_detector::Door &door);
+    GenericObject(const GenericObject &object);
     RoboCompYoloObjects::TBox getObject();
     string getTypeObject();
     bool setRoom(int room);

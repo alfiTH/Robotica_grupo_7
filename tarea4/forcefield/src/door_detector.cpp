@@ -5,7 +5,6 @@
 
 std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen::Vector2f> &line)
 {
-
     //std::vector<> puertas;
     //auto filtrado = std::norm(cppitertools::sliding_window(current_line))
     std::vector <float> derivada(line.size()-1);
@@ -42,7 +41,6 @@ std::vector<Door_detector::Door> Door_detector::detector(const std::vector<Eigen
         }
         //qInfo() << __FUNCTION__ << "-----------";
     }
-    qInfo() << __FUNCTION__ << doors.size();
 return doors;
 }
 

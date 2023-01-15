@@ -29,9 +29,9 @@ namespace rc
         return target;
     }
 
-    Eigen::Vector3f Robot::get_camera_target_coordinates() const
+    Eigen::Vector3f Robot::get_camera_target_coordinates()
     {
-        return Eigen::Vector3f{current_target.x, current_target.y, current_target.z};
+        return this->current_target->get_target_coordinates();
     }
     void Robot::set_current_speed(float adv, float rot)
     {
@@ -68,9 +68,10 @@ namespace rc
     {
         return current_rot_speed;
     }
-    float Robot::get_target_angle_in_frame() const
+    float Robot::get_target_angle_in_frame()
     {
-        return atan2(current_target.x, current_target.y);
+        Eigen::Vector3f aux = current_target->get_target_coordinates();
+        return atan2(aux.x(), aux.y());
     }
     float Robot::get_current_pan_angle() const
     {
@@ -78,7 +79,7 @@ namespace rc
     }
     GenericObject Robot::get_current_target() const
     {
-        return current_target;
+        return *current_target;
     }
     void Robot::set_desired_distance_to_target(float dist)
     {
@@ -89,36 +90,32 @@ namespace rc
         return get_robot_target_coordinates().norm();
     }
 
-    void Robot::set_current_target(GenericObject &object)
+    void Robot::set_current_target(const GenericObject &object)
     {
         pure_rotation = 0.f;
-        current_target = object.getObject();
+        pure_advance = 0.f;
+        GenericObject *aux = new GenericObject(object);
+        delete current_target;
+        current_target = aux;
         has_target_flag = true;
     }
     void Robot::goto_target(vector<Eigen::Vector2f> current_line, AbstractGraphicViewer *viewer)
     {
         //Eigen::Vector3f vel;
 
-        float side, adv, rot;
+        float side = 0, adv = 0, rot = 0;
         if(pure_rotation >  0.0f)
-        {
-            side = 0;
             rot = pure_rotation;
-            adv = 0;
-        }
-        else if(has_target_flag)
+        if(pure_advance > 0.f)
+            adv = pure_advance;
+        if(has_target_flag)
         {
             auto target = get_robot_target_coordinates();
             //DWA algorithm
-            auto [x_, y_, z_] =  dwa.update(target, current_line, get_current_advance_speed(), get_current_rot_speed(), viewer);
-            side = x_;
-            adv = y_;
-            rot = z_;
-        }
-        else {
-            side = 0;
-            adv = 0;
-            rot = 0;
+            auto [adv_, rot_, side_] =  dwa.update(target, current_line, get_current_advance_speed(), get_current_rot_speed(), viewer);
+            side = side_;
+            adv = adv_;
+            rot = rot_;
         }
         // Set_speed_base
          qInfo() << __FUNCTION__ << side << adv << rot;
@@ -133,6 +130,11 @@ namespace rc
     void Robot::rotate(float vel_rotation)
     {
         pure_rotation = vel_rotation;
+    }
+
+    void Robot::advance(float vel_adv)
+    {
+        pure_advance = vel_adv;
     }
 
     Eigen::Transform<float, 3, Eigen::Affine> Robot::get_tf_cam_to_base()
@@ -158,7 +160,7 @@ namespace rc
         if(has_target_flag)
         {
             std::cout << "  Target:" << std::endl;
-            std::cout << "      Type: " << current_target.type << std::endl;
+            std::cout << "      Type: " << current_target->getTypeObject() << std::endl;
             std::cout << "      Cam coor: [" << get_camera_target_coordinates().x() << ", " << get_camera_target_coordinates().y() << "]" << std::endl;
             std::cout << "      Robot coor: [" << get_robot_target_coordinates().x() << ", " << get_camera_target_coordinates().y() << "]" << std::endl;
             std::cout << "      Distance: " << get_distance_to_target() << std::endl;

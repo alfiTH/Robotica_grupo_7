@@ -31,7 +31,7 @@ class State_machine
     private:
         rc::Robot *robot;
         Graph graph;
-        GenericObject *oldDoorRoom;
+        GenericObject *oldDoorRoom = new GenericObject();
         int posOldDoorRoom;
 
 };

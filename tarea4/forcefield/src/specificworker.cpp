@@ -215,7 +215,10 @@ void SpecificWorker::compute()
     /// compute level_lines
     auto omni_lines = get_multi_level_3d_points_omni(omni_depth_frame);
     draw_floor_line(omni_lines, {1});
-    auto current_line = omni_lines[1];  // second line of the list of laser lines at different heights
+
+    //std::vector<Eigen::Vector2f>  current_line ;
+    std::vector<Eigen::Vector2f>  current_line = omni_lines[1] ;
+    //std::copy(omni_lines[1].begin()+omni_lines.size()/3, omni_lines[1].end()-omni_lines.size()/3, back_inserter(current_line));  // second line of the list of laser lines at different heights
     //auto top_lines = get_multi_level_3d_points_top(top_depth_frame, top_camera.get_depth_focalx(), top_camera.get_depth_focaly());
     //auto top_lines  = top_camera.get_depth_lines_in_robot(0, 1600, 50, robot.get_tf_cam_to_base());
     //draw_floor_line(top_lines, {1});
@@ -242,6 +245,7 @@ void SpecificWorker::timer_state_machine()
 {
     state_machine.state_machine_condition(objects);
 }
+
 
 void SpecificWorker::centerCamera(){
     static RoboCompJointMotorSimple::MotorState servo_state;

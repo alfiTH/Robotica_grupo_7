@@ -35,7 +35,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <dynamic_window.h>
-#include <timer/timer.h>
 #include "robot.h"
 #include "camera.h"
 #include "state_machine.h"
@@ -58,6 +57,7 @@ class SpecificWorker : public GenericWorker
         void compute();
         int startup_check();
         void initialize(int period);
+        void timer_state_machine();
         void centerCamera();
 
     private:
@@ -149,8 +149,6 @@ class SpecificWorker : public GenericWorker
     // Clock
     rc::Timer<> clock;
 
-    public slots:
-        void timer_state_machine();
 
 };
 

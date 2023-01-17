@@ -36,7 +36,9 @@ int Graph::add_node()
 //int id_counter = 0;
 //std::map<int, Node> nodes;
 //std::map<std::pair<int, int>,  Edge> edges;
-
+int Graph::num_nodes() {
+    return nodes.size();
+}
 
 int Graph::add_node(int node_dest)
 {
@@ -67,13 +69,12 @@ void Graph::add_edge(int n1, int n2)
 void Graph::set_tags(int id, const std::set<std::string> objects)
 {
     //Si no existe nodo lo creamos
-    if (!this->nodes.contains(id))
-        add_node(id);
-    //Obtenemos el nodo
-    Node nod = this->nodes.at(id);
-
-    //Incorporamos la lista de objetos
-    nod.objects = objects;
+    auto item = nodes.find(id);
+    if (item != nodes.end()) {
+        item->second.objects = objects;
+    } else {
+        cout << "Node does not exist!" << endl;
+    }
 }
 
 std::set<std::string> Graph::get_tags(int id)
@@ -82,10 +83,23 @@ std::set<std::string> Graph::get_tags(int id)
 
     auto item = nodes.find(id);
     if (item != nodes.end()) {
-             return item->second.objects;
+
+        return item->second.objects;
     } else {
         cout << "Node does not exist!" << endl;
         return stringTipoObj;
+    }
+
+}
+
+void Graph::show_graph()
+{
+    for (auto &n : nodes){
+        std::cout <<"Nodo "<<n.first<<std::endl;
+        for (auto &tag :n.second.objects)
+            std::cout <<tag<<", ";
+        std::cout<<std::endl;
+        std::cout<<std::endl;
     }
 
 }

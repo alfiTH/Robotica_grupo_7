@@ -9,6 +9,8 @@
 #include "robot.h"
 #include "generic_object.h"
 #include <graph.h>
+#include <QTimer>
+#include <timer/timer.h>
 
 class State_machine
 {
@@ -18,7 +20,7 @@ class State_machine
         void initialize(rc::Robot *robot);
         void state_machine_action(std::vector<GenericObject> &objects);
         void state_machine_condition(std::vector<GenericObject> &objects);     
-        enum class State {SEARCHING, APPROACHING, WAITING, ID_ROOM, SCAN, FIND, TRANSITION_ROOM};
+        enum class State {SEARCHING, APPROACHING, WAITING, SCAN, TRANSITION_ROOM};
         State state;
         void search_state(std::vector<GenericObject> &objects);
         void scan_state(std::vector<GenericObject> &objects);
@@ -30,12 +32,19 @@ class State_machine
         void wait_state();
         int errorFrame;
         //int numRoom = 0;
+    public slots:
+        void  show_graph();
+
     private:
         rc::Robot *robot;
         Graph graph;
         //GenericObject *oldDoorRoom = new GenericObject();
         //int posOldDoorRoom;
-        bool firstTime = false;
+        bool firstTime = false, firstTime2  = false;
+
+        bool firstScan = true;
+
+        QTimer *graph_timer;
 
 };
 #endif

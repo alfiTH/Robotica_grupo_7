@@ -4,11 +4,13 @@ class Graph
 {
    public:
         Graph();
+        int num_nodes();
         int add_node();
         int add_node(int node_dest);
         void add_edge(int n1, int n2);
         void set_tags(int id, const  std::set<std::string> objects);
         std::set<std::string> get_tags(int id);
+        void show_graph();
 
    private:
    

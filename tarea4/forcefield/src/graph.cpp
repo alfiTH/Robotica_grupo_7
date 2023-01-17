@@ -79,13 +79,15 @@ void Graph::set_tags(int id, const std::set<std::string> objects)
 std::set<std::string> Graph::get_tags(int id)
 {
     std::set<std::string> stringTipoObj;
-    for (const auto &i : nodes) {
-        if(i.first == id)
-        {
-            return i.second.objects;
-        }
+
+    auto item = nodes.find(id);
+    if (item != nodes.end()) {
+             return item->second.objects;
+    } else {
+        cout << "Node does not exist!" << endl;
+        return stringTipoObj;
     }
-    return stringTipoObj;
+
 }
 
 //void Graph::add_tags(int id, const std::vector<GenericObject> &objects)

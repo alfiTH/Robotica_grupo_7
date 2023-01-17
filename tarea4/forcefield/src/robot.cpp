@@ -104,10 +104,6 @@ namespace rc
         //Eigen::Vector3f vel;
 
         float side = 0, adv = 0, rot = 0;
-        if(pure_rotation >  0.0f)
-            rot = pure_rotation;
-        if(pure_advance > 0.f)
-            adv = pure_advance;
         if(has_target_flag)
         {
             auto target = get_robot_target_coordinates();
@@ -117,6 +113,11 @@ namespace rc
             adv = adv_;
             rot = rot_;
         }
+        if(abs(pure_rotation) >  0.0f)
+            rot += pure_rotation;
+        if(abs(pure_advance) > 0.f)
+            adv += pure_advance;
+
         // Set_speed_base
          qInfo() << __FUNCTION__ << side << adv << rot;
          try{ omnirobot_proxy->setSpeedBase(side, adv, rot); }

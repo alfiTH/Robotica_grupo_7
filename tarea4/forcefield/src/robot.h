@@ -73,7 +73,7 @@ namespace rc
                 float current_adv_speed = 0;
                 float current_rot_speed = 0;
                 float camera_pan_angle = 0.f;
-                float min_distance_to_target = 800.f;
+                float min_distance_to_target = 300.f;
                 Eigen::Transform<float, 3, Eigen::Affine> tf;
                 std::vector<std::string> axes;
                 RoboCompJointMotorSimple::JointMotorSimplePrxPtr joint_motor_proxy;

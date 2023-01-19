@@ -4,9 +4,13 @@
 
  State_machine::State_machine(){
     this->state = State::SCAN;
-    this->errorFrame = 0;
+
     std::cout << "STATE MACHINE CREATE"<< endl;
  }
+
+State_machine::~State_machine(){
+    show_graph();
+}
 
 
 void State_machine::initialize(rc::Robot *robot){
@@ -111,7 +115,7 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
             else{
                 auto end = std::chrono::system_clock::now();
                 std::chrono::duration<float,std::milli> duration = end - start;
-                if (duration.count() > 1400 )
+                if (duration.count() > 2200 )
                  {
                      robot->stop();
                      firstTime = false;
@@ -126,7 +130,7 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
         }
         case State_machine::State::WAITING:
         {
-            show_graph();
+
             break;
         }
         default: break;
@@ -141,34 +145,41 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
     static std::vector<GenericObject> objectList;
     static int idNode;
     static bool direction;
+    static bool  explored;
+    float velScan = 0.3;
 
     if (firstScan)
     {
-        robot->rotate(0.2);
+        robot->rotate(velScan);
         direction = false;
     }
     else
     {
         static std::chrono::time_point<std::chrono::system_clock> start;
         if (direction)
-            robot->rotate(0.2);
+            robot->rotate(velScan);
         else
-            robot->rotate(-0.2);
+            robot->rotate(-velScan);
 
         if (!firstTime2)
         {
             start = std::chrono::system_clock::now();
             firstTime2 = true;
+            explored = false;
         }
-        else{
-            auto end = std::chrono::system_clock::now();
-            std::chrono::duration<float,std::milli> duration = end - start;
-            if (duration.count() > 1400 )
-            {
-                firstTime2 = false;
-                direction = !direction;
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        if (duration.count() > (M_PI_2-0.2)/velScan && !direction )
+        {
+            start = std::chrono::system_clock::now();
+            direction = true;
+        }
+        else if (duration.count() > (M_PI-0.2) /velScan && direction )
+        {
+            firstTime2 = false;
+            direction = false;
+            explored = true;
 
-            }
         }
     }
 
@@ -176,7 +187,8 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
 
     for(auto &object : objects)
     {
-        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 2100 or object.getTypeObject() == "Door")
+        if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 2500 or
+        (object.getTypeObject() == "Door" and robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 3000))
         {
             //El objeto esta repetido?
             auto itObj = std::find_if(objectList.begin(), objectList.end(),
@@ -185,7 +197,6 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
             //el tipo no esta repetido lo añadimos
             if (itObj == objectList.end()) {
                 objectList.push_back(object);
-                std::cout << "añadido : " << object.getTypeObject()<<std::endl;
             }
         }
     }   
@@ -202,8 +213,8 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
                                    [obj = &objectList.at(0), robot=this->robot, umbral_mismo_obj](GenericObject &s) {
                                        return equal_object(*obj, s, umbral_mismo_obj, robot); });
         //Orientamos el robot
-        std::cout << "orientamos" << std::endl;
-        if(objects.end() == exit and fabs((exit->get_target_coordinates().x())<200))
+        std::cout << "Orientamos" << explored<<std::endl;
+        if((objects.end() != exit and fabs((exit->get_target_coordinates().x())<100) and firstScan) or explored)
         {
             qInfo()<< "Procesando de nodo";
             std::set<string> typeList;
@@ -217,7 +228,7 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
                 string nameObject = obj.getTypeObject();
                 if (obj.getTypeObject() == "Door" ) {
                     // puerta de ingreso
-                    if (obj.get_target_coordinates().norm() < 1000) {
+                    if (obj.get_target_coordinates().norm() < 1250) {
                         for(auto &x: graph.get_tags(idNode))
                             std::cout<<x<<", ";
                         std::cout<<std::endl;
@@ -234,7 +245,6 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
                     //posible puerta de salida
                     else if (!firstDoor)
                     {
-                        posOldDoorRoom = typeList.size() - 1;
                         robot->set_current_target(obj);
                         robot->set_has_target(false);
                         //GenericObject *auxObj = new GenericObject(obj);
@@ -245,9 +255,15 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
                     }
                 }
                 else{
-                    nodos.erase(std::remove_if(nodos.begin(), nodos.end(), [n = nameObject, g = &graph](auto p)
-                    {auto tags = g->get_tags(p); return  std::find(tags.begin(), tags.end(), n) != tags.end(); }), nodos.end());
-
+                    while (true)
+                    {
+                        auto diferente = std::find_if(nodos.begin(), nodos.end(), [n = nameObject, g = &graph](auto p)
+                            {auto tags = g->get_tags(p); return  std::find(tags.begin(), tags.end(), n) == tags.end(); });
+                        if (diferente == nodos.end())
+                            break;
+                        else
+                            nodos.erase(diferente, nodos.end());
+                    }
                 }
                 typeList.emplace(nameObject);
             }
@@ -255,14 +271,18 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
                 auto puerta = std::find_if(objects.begin(), objects.end(),
                              [ robot=this->robot, umbral_mismo_obj](GenericObject &s) {
                                  return s.getTypeObject() == "Door"; });
+                if (puerta == objects.end())
+                    std::cout << "No se encontraron puertas"<<std::endl;
                 robot->set_current_target(*puerta);
                 robot->set_has_target(false);
-                qInfo()<<"nope";
             }
 
             //misma sala
-            if (nodos.size()>0)
+            if (nodos.end() != std::find_if(nodos.begin(), nodos.end(), [n = typeList.size(), g = &graph](auto p)
+                {return  g->get_tags(p).size() == n; }))
+            {
                 state =  State_machine::State::WAITING;
+            }
             //sala no identificada
             else
             {
@@ -288,7 +308,7 @@ void State_machine::search_state( std::vector<GenericObject> &objects)
 {
     
     qInfo()<<__FUNCTION__<<QString::fromUtf8( robot->get_current_target().getTypeObject().c_str()) ;
-    robot->rotate(0.5);
+    robot->rotate(-0.5);
     
 }
 
@@ -298,17 +318,15 @@ void State_machine::approach_state( std::vector<GenericObject> &objects)
     Eigen::Vector3f cord = robot->get_robot_target_coordinates(target.get_target_coordinates());
     qInfo()<<__FUNCTION__<< robot->has_target()<< QString::fromUtf8(target.getTypeObject().c_str()) <<cord.x()<<cord.y()<<cord.z()<< cord.norm();
 
-    for(auto &object : objects) {
-        if(target.sameType(object))
-        {
-            std::cout<<target.getTypeObject()<< object.getTypeObject()<<std::endl;
-                        
-            robot->set_current_target(object);
-            errorFrame = 0;
-            break;
-        }
+    auto tagetAux = std::find_if(objects.begin(), objects.end(),
+                             [obj = &target, robot=this->robot, umbral_mismo_obj = 1000](GenericObject &s) {
+                                 return equal_object(*obj, s, umbral_mismo_obj, robot); });
+
+    if(tagetAux != objects.end()){
+        robot->set_current_target(*tagetAux);
     }
-    
+
+
 }
 
 void State_machine::transition_room_state( std::vector<GenericObject> &objects)
@@ -342,5 +360,8 @@ void State_machine::wait_state()
 {
     qInfo()<<__FUNCTION__;
     robot->stop();
+    show_graph();
+    sleep(15);
+
 
 }

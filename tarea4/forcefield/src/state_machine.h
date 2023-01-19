@@ -16,6 +16,7 @@ class State_machine
 {
     public:
         State_machine();
+        ~State_machine();
         // state machine
         void initialize(rc::Robot *robot);
         void state_machine_action(std::vector<GenericObject> &objects);

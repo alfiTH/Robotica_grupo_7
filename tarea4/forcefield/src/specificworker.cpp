@@ -296,7 +296,7 @@ std::vector<GenericObject> SpecificWorker::yolo_detect_objects(cv::Mat rgb)
     yolo_objects.objects.erase(std::remove_if(yolo_objects.objects.begin(), yolo_objects.objects.end(), [names = yolo_object_names](auto p)
     { return p.score<80 and names[p.type] != "person" and names[p.type] != "chair" and names[p.type] != "microwave"
     and names[p.type] != "tv" and names[p.type] != "refrigerator" and names[p.type] != "potted plant"
-    and names[p.type] != "dining table" and names[p.type] != "toilet" and names[p.type] != "sink"; }), yolo_objects.objects.end());
+    and names[p.type] != "toilet" and names[p.type] != "sink"; }), yolo_objects.objects.end());
 
     // draw boxes
     for(auto &&o: yolo_objects.objects | iter::filter([th = consts.yolo_threshold](auto &o){return o.score > th;}))

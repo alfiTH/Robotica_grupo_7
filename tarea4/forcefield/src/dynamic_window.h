@@ -45,10 +45,10 @@ class Dynamic_Window
         QPolygonF polygon_robot; // to check if the point is reachable
         struct Constants
         {
-            const float robot_semi_width = 150;   // robot semi size
+            const float robot_semi_width = 125;   // robot semi size
             const float step_along_arc = 200;      // advance step along arc
             const float time_ahead = 2;         // time ahead ahead
-            const float max_advance_velocity = 500;
+            const float max_advance_velocity = 250;
             const float min_advance_velocity = 0.f;
             const float max_rotation_velociy = 2;
             const float adv_accel = 300; // mm/sg2

@@ -8,6 +8,11 @@
 
 namespace rc
 {
+    Robot::~Robot()
+    {
+        delete current_target;
+    }
+
     void Robot::initialize(RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy_)
     {
         this->omnirobot_proxy = omnirobot_proxy_;

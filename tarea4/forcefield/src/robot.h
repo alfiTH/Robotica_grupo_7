@@ -22,6 +22,7 @@ namespace rc
     {
         public:
                 Robot() = default;
+                ~Robot();
                 void update_speed();
                 void update_joints();
 

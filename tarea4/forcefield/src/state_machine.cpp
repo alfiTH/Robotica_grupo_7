@@ -4,7 +4,6 @@
 
  State_machine::State_machine(){
     this->state = State::SCAN;
-
     std::cout << "STATE MACHINE CREATE"<< endl;
  }
 
@@ -15,20 +14,20 @@ State_machine::~State_machine(){
 
 void State_machine::initialize(rc::Robot *robot){
     this->robot = robot;
-
-   // this->graph_timer = new QTimer(this);
-    //connect(graph_timer, SIGNAL(timeout()), this, SLOT(show_graph()));
-    //graph_timer->start(1000);
 }
 void State_machine::show_graph(){
     graph.show_graph();
 }
+
+//Compara la distancia entre el elemnto a y be con un +-umbral
 bool in_range(float a, float b, float umbral)
 {
+
     //std::cout<<"Distanca a "<< a<< "Distancia b"<<b<<std::endl;
     return (a < b + umbral) && (a > b - umbral);
 }
 
+//R etorna si son igual en tipo y parecidos en distancia
 bool equal_object(GenericObject object1, GenericObject object2, float tolerance, rc::Robot *robot)
 {
     return object1.getTypeObject() == object2.getTypeObject() && in_range(
@@ -37,7 +36,7 @@ bool equal_object(GenericObject object1, GenericObject object2, float tolerance,
         object1.get_target_coordinates()).norm(), tolerance);
 }
 
-
+//Acciones de la maquina de estados
 void State_machine::state_machine_action(std::vector<GenericObject> &objects)
 {
     switch (state)
@@ -71,6 +70,7 @@ void State_machine::state_machine_action(std::vector<GenericObject> &objects)
     }
 }
 
+//Condiciones de la maquina de estados
 void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
 {
     GenericObject target = robot->get_current_target();
@@ -78,11 +78,11 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
     {
         case State_machine::State::SCAN:
         {
-
             break;
         }
         case State_machine::State::SEARCHING:
         {
+            //Si encontramos el objeto target vamos a por el pon el APPROACHING
             if(objects.end() != std::find_if(objects.begin(), objects.end(),
                     [obj = robot->get_current_target(), robot=this->robot, umbral_mismo_obj = 500](GenericObject &s) {
                     return equal_object(obj, s, umbral_mismo_obj, robot); }))
@@ -94,6 +94,7 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
         }
         case State_machine::State::APPROACHING:
         {
+            //ya hemos alcanzado el target
             if (robot->get_distance_to_target()<500)
             {
                 //robot->set_has_target(false);
@@ -106,6 +107,7 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
 
         case State_machine::State::TRANSITION_ROOM:
         {
+            //Se dara un tiempo en movimiento rar la transición entre habitaciones
             static std::chrono::time_point<std::chrono::system_clock> start;
             if (!firstTime)
             {
@@ -125,12 +127,10 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
 
                  }
             }
-
             break;
         }
         case State_machine::State::WAITING:
         {
-
             break;
         }
         default: break;
@@ -142,17 +142,20 @@ void State_machine::state_machine_condition(std::vector<GenericObject> &objects)
 void State_machine::scan_state(std::vector<GenericObject> &objects)
 {
     qInfo()<<__FUNCTION__;
-    static std::vector<GenericObject> objectList;
-    static int idNode;
-    static bool direction;
-    static bool  explored;
-    float velScan = 0.3;
+    static std::vector<GenericObject> objectList; //Objetos reconocidos
+    static int idNode;      //ID del nodo escrito anteriormente
+    static bool direction;  //Direcion en caso de no ser el primer escaneo
+    static bool  explored;  //Teminado el escaneo
+    float velScan = 0.3;    //Velocidad de escaneo
+    float umbral_mismo_obj = 750; // umbral para considerar un mismo objeto por distancia
 
+    //En el primer escaneo sera de 360 gracos reconociendo el primer elemento de la lista
     if (firstScan)
     {
         robot->rotate(velScan);
         direction = false;
     }
+    //Si no sera un escaneo de 180 grados
     else
     {
         static std::chrono::time_point<std::chrono::system_clock> start;
@@ -183,8 +186,7 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
         }
     }
 
-    float umbral_mismo_obj = 750;
-
+    //con rodos los objetos reconocidos insertamos los nuevos
     for(auto &object : objects)
     {
         if (robot->get_robot_target_coordinates(object.get_target_coordinates()).norm() < 2500 or
@@ -200,7 +202,8 @@ void State_machine::scan_state(std::vector<GenericObject> &objects)
             }
         }
     }   
-    
+
+    //mostamos objetos guardados
     for (auto &x : objectList){
         std::cout << x.getTypeObject() << ", ";
     }
